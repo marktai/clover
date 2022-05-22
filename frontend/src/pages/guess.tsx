@@ -51,6 +51,8 @@ export class Guess extends React.Component<GuessProps, GuessState> {
 
   interval: null|any = null;
 
+  ws: null|WebSocket = null;
+
   stateKey(): string {
     return `${this.props.id}/state`;
   }
@@ -145,6 +147,14 @@ export class Guess extends React.Component<GuessProps, GuessState> {
     if (this.interval === null) {
       this.interval = setInterval(() => { this.pollPushPull() }, pollInterval);
     }
+
+    this.ws = new WebSocket(`ws://${window.location.host}/ws/listen/${this.props.id}`);
+    this.ws.onmessage = (event) => {
+      const message: any = JSON.parse(event.data);
+      if (message.type === 'GAME_UPDATE') {
+        this.pullClientState(message.data);
+      }
+    };
 
     await this.setStateWithWrite({
       ...defaultGuessState,

@@ -7,7 +7,7 @@ import (
 	"math/rand"
 	"net/http"
 	"time"
-	"ws"
+	"marktai.com/websockets/ws"
 )
 
 var requireAuth bool
@@ -24,8 +24,8 @@ func Run(port int) {
 	rand.Seed(time.Now().UTC().UnixNano())
 	r := mux.NewRouter()
 
-	r.HandleFunc("/listen/{id:[0-9]+}", Log(ws.ServeWs)).Methods("GET")
-	r.HandleFunc("/broadcast/{id:[0-9]+}", Log(broadcastUpdate)).Methods("POST")
+	r.HandleFunc("/listen/{id:[0-9a-zA-Z]+}", Log(ws.ServeWs)).Methods("GET")
+	r.HandleFunc("/broadcast/{id:[0-9a-zA-Z]+}", Log(broadcastUpdate)).Methods("POST")
 
 	for {
 		log.Printf("Running at 0.0.0.0:%d\n", port)

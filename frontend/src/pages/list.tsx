@@ -36,6 +36,10 @@ class List extends React.Component<ListProps, ListState> {
     this.props.navigate(`/games/${newGame.id}/clues`);
   }
 
+  clearAllState() {
+    localStorage.clear();
+  }
+
   getLink(game: GameType) {
     return "/games/" + game.id + (game.clues === null ? "/clues" : "/guess");
   }
@@ -90,6 +94,7 @@ class List extends React.Component<ListProps, ListState> {
                 To solve the clues for an existing game, click on any listed game
               </ListGroup.Item>
             </ListGroup>
+            <Button variant={"danger"} onClick={() => {this.clearAllState()}}>Clear all state!</Button>
           </Col>
         </Row>
       </Container>

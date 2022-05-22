@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"ws"
+	"marktai.com/websockets/ws"
 )
 
 func broadcastUpdate(w http.ResponseWriter, r *http.Request) {

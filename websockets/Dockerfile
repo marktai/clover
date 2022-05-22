@@ -1,11 +1,14 @@
-FROM golang:1.9.2-alpine3.6
-RUN apk add  --no-cache git
+FROM golang:1.18-alpine
+RUN apk add --no-cache git
+ENV GO111MODULE=on
 
-RUN mkdir /app 
-ADD . /app/ 
-WORKDIR /app 
-ENV GOPATH /app
+WORKDIR /app/src/
+ENV GOPATH=/app
+COPY src/go.mod .
+COPY src/go.sum .
+RUN go mod download
 
-RUN cd src/main && go get
-RUN go build -o main src/main/main.go
-CMD ["/app/main"]
+ADD src/ ./
+
+RUN go build -o websockets marktai.com/websockets
+CMD ["/app/src/websockets"]

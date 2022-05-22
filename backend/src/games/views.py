@@ -41,23 +41,11 @@ class MakeGuessView(APIView):
         board = get_object_or_404(Board, id=kwargs['game_id'])
         result = board.check_guess(request.data['guess'])
 
-        # # update on websockets
-        # requests.post(
-        #     'http://websockets/broadcast/%d' % game.id,
-        #     json={'type': 'GAME_UPDATE'},
-        # )
-
         return Response({'results': result})
 
 class DailyGameView(APIView):
     def get(self, request, *args, **kwargs):
         daily = Board.objects.daily()
-
-        # # update on websockets
-        # requests.post(
-        #     'http://websockets/broadcast/%d' % game.id,
-        #     json={'type': 'GAME_UPDATE'},
-        # )
 
         return Response(BoardSerializer(daily).data)
 
@@ -73,5 +61,11 @@ class BoardClientStateView(APIView):
 
     def post(self, request, *args, **kwargs):
         client_state = BoardClientState.objects.create(board_id=kwargs['game_id'], **request.data)
+
+        # update on websockets
+        requests.post(
+            'http://websockets/broadcast/%s' % kwargs['game_id'],
+            json={'type': 'GAME_UPDATE', 'data': BoardClientStateSerializer(client_state).data},
+        )
 
         return Response(BoardClientStateSerializer(client_state).data)
