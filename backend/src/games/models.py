@@ -5,6 +5,9 @@ from django.db import models, transaction
 from django_jsonform.models.fields import ArrayField
 
 from rest_framework import exceptions as drf_exceptions
+from datetime import datetime, timedelta
+import pytz
+from django.db.models import Q
 
 dirname, filename = os.path.split(os.path.abspath(__file__))
 words_path = os.path.join(dirname, 'words.json')
@@ -15,55 +18,6 @@ def chunks(lst, n):
     """Yield successive n-sized chunks from lst."""
     for i in range(0, len(lst), n):
         yield lst[i:i + n]
-
-# Create your models here.
-
-
-# # Create your models here.
-# class Game(models.Model):
-#     class PlayerError(drf_exceptions.ValidationError):
-#         """Exception thrown when incorrect player tries to move"""
-#         pass
-#     class MoveError(drf_exceptions.ValidationError):
-#         """Exception thrown when move is illegal"""
-#         pass
-
-#     created_time = models.DateTimeField(auto_now_add=True)
-#     last_updated_time = models.DateTimeField(auto_now=True)
-
-#     def __str__(self):
-#         return 'Game between %s and %s' % (self.white_player, self.black_player)
-
-#     @property
-#     def board(self):
-#         return self.board_set.last()
-
-#     @property
-#     def turn_count(self):
-#         return self.board.turn_count
-
-#     @transaction.atomic
-#     def make_move(self, player, uci):
-#         if self.turn_count % 2 == 0 and player != self.white_player:
-#             raise self.PlayerError('It is white\'s turn (%s)' % self.white_player)
-#         if self.turn_count % 2 == 1 and player != self.black_player:
-#             raise self.PlayerError('It is black\'s turn (%s)' % self.black_player)
-
-#         try:
-#             board = self.board.make_move(uci)
-#         except ValueError as e: # invalid move
-#             raise self.MoveError('%s is an invalid move because of %s' % (uci, e))
-
-#         return board
-
-#     def save(self, *args, **kwargs):
-#         ret = super().save(*args, **kwargs)
-
-#         if self.board is None:
-#             init_board = Board.bad_board(game=self)
-#             init_board.save()
-
-#         return ret
 
 class BoardManager(models.Manager):
     def create_board(self, *args, **kwargs):
@@ -78,6 +32,34 @@ class BoardManager(models.Manager):
         board = self.create(cards=cards, answer=answer, *args, **kwargs)
 
         return board
+
+    def daily(self):
+        la_tz = pytz.timezone('Etc/GMT-7')
+        la_now = datetime.now(la_tz).astimezone(la_tz)
+        la_day_begin = datetime(la_now.year, la_now.month, la_now.day, tzinfo=la_tz).astimezone(pytz.timezone('UTC'))
+
+        existing = self.filter(
+            daily_set_time__gte=la_day_begin,
+        ).order_by(
+            '-daily_set_time',
+        ).first()
+
+        if existing is not None:
+            return existing
+
+        new_daily = self.filter(
+            ~Q(author=""),
+        ).filter(
+            daily_set_time__isnull=True,
+        ).order_by(
+            '-last_updated_time',
+        ).first()
+
+        new_daily.daily_set_time = la_now
+
+        self.filter(id=new_daily.id).update(daily_set_time=la_now)
+
+        return new_daily
 
 class Board(models.Model):
     WORDS_PER_CARD = 4
@@ -114,6 +96,7 @@ class Board(models.Model):
 
     suggested_num_cards = models.IntegerField(null=True)
     author = models.CharField(max_length=50, blank=True)
+    daily_set_time = models.DateTimeField(null=True)
 
     @property
     def answer_cards(self):
@@ -185,3 +168,17 @@ class Board(models.Model):
                 cur = 0
             resp.append(cur)
         return resp
+
+
+class BoardClientStateManager(models.Manager):
+    def get_latest(self, board_id):
+        return self.filter(board=board_id, created_time__gte=(datetime.now() - timedelta(minutes=5))).order_by('-id').first()
+
+class BoardClientState(models.Model):
+    objects = BoardClientStateManager()
+
+    board = models.ForeignKey(Board, on_delete=models.CASCADE)
+    created_time = models.DateTimeField(auto_now_add=True)
+    data = models.JSONField()
+    client_id = models.CharField(max_length=50)
+

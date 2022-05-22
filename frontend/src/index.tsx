@@ -6,6 +6,7 @@ import './index.css';
 import List from './pages/list';
 import Clues from './pages/clues';
 import Guess from './pages/guess';
+import Daily from './pages/daily';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -24,6 +25,8 @@ root.render(
         <Route index element={<List />} />
         <Route path="/games/:id/clues" element={<Clues />} />
         <Route path="/games/:id/guess" element={<Guess />} />
+        <Route path="/games/new_daily" element={<Daily />} />
+        <Route path="/daily" element={<Daily />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

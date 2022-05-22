@@ -32,6 +32,8 @@ router.register('games', views.BoardViewSet, basename='Board')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include(router.urls)),
     re_path('games/(?P<game_id>[0-9]+)/guess', views.MakeGuessView.as_view(), name='make_guess'),
+    re_path('games/(?P<game_id>[0-9]+)/client_state', views.BoardClientStateView.as_view(), name='make_guess'),
+    path('games/daily', views.DailyGameView.as_view(), name='daily'),
+    path('', include(router.urls)),
 ]

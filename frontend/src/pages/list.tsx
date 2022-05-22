@@ -1,19 +1,23 @@
 import React from 'react';
 import CloverService from '../api';
 import { GameType } from '../api';
-import ListGroup from 'react-bootstrap/ListGroup';
-import Button from 'react-bootstrap/Button';
+import {Container, Row, Col, ListGroup, Button} from 'react-bootstrap';
 import {
-  Link
+  Link,
+  useNavigate,
 } from "react-router-dom";
 
+type ListProps = {
+  navigate: any,
+}
+
 type ListState = {
-  games: Array<GameType>;
+  games: null|Array<GameType>;
 };
 
-export default class List extends React.Component<{}, ListState> {
+class List extends React.Component<ListProps, ListState> {
   state: ListState = {
-    games: [],
+    games: null,
   };
 
   async refresh() {
@@ -28,8 +32,8 @@ export default class List extends React.Component<{}, ListState> {
   }
 
   async newGame() {
-    await CloverService.newGame();
-    await this.refresh();
+    const newGame = await CloverService.newGame();
+    this.props.navigate(`/games/${newGame.id}/clues`);
   }
 
   getLink(game: GameType) {
@@ -37,33 +41,65 @@ export default class List extends React.Component<{}, ListState> {
   }
 
   render() {
-    const gameList = this.state.games.map(
+    const [gamesWithoutClues, gamesWithClues] = [
+      (this.state.games ?? []).filter((g) => g.clues === null),
+      (this.state.games ?? []).filter((g) => g.clues !== null),
+    ].map((list) => list.map(
       (game: GameType, i: number) => {
-        const text = game.clues === null ?
+        let text = game.clues === null ?
           `Game ${game.id} without clues` :
           `Game ${game.id} by ${game.author} with ${game.suggested_num_cards} cards`;
+        if (game.daily_set_time !== null) {
+          const date = new Date(game.daily_set_time);
+          text += ` (${date.getMonth() + 1}/${date.getDate()}'s daily puzzle)`
+        }
         return <ListGroup.Item key={i}>
           <Link to={this.getLink(game)}>{text}</Link>
         </ListGroup.Item>;
-    });
+    }));
 
     return (
-      <div className="list">
-        <ListGroup>
-          { gameList }
-        </ListGroup>
-        <Button onClick={() => {this.newGame()}}>New Game</Button>
-        <div>
-          <ListGroup variant="flush">
-            <ListGroup.Item>
-              To give clues for a new game, click "New Game", then click on the newly generated "Game # without clues" on the top
-            </ListGroup.Item>
-            <ListGroup.Item>
-              To solve the clues for an existing game, click on a game that says "Game # by author with 5-8 cards"
-            </ListGroup.Item>
-          </ListGroup>
-        </div>
-      </div>
+      <Container className="list">
+        <Row>
+          <Col xs={12} md={6}>
+            <Button onClick={() => {this.newGame()}}>New Game</Button>
+            <div>
+              Games with clues, ready to guess
+            </div>
+            <ListGroup>
+              <ListGroup.Item key={"daily"}>
+                <Link to={"/daily"}>Daily updated game</Link>
+              </ListGroup.Item>
+              {
+                this.state.games === null ?
+                  <img className="loader" src="https://www.marktai.com/download/54689/ZZ5H.gif"/> :
+                  gamesWithClues
+              }
+            </ListGroup>
+            {/*Games without clues
+            <ListGroup>
+              { gamesWithoutClues }
+            </ListGroup>*/}
+          </Col>
+          <Col xs={12} md={6}>
+            <ListGroup variant="flush">
+              <ListGroup.Item>
+                To give clues for a new game, click "New Game"
+              </ListGroup.Item>
+              <ListGroup.Item>
+                To solve the clues for an existing game, click on any listed game
+              </ListGroup.Item>
+            </ListGroup>
+          </Col>
+        </Row>
+      </Container>
     );
   }
 }
+
+const ListContainer = () => {
+  const navigate = useNavigate();
+  return (<List navigate={navigate}></List>)
+}
+
+export default ListContainer;

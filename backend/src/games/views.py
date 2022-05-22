@@ -16,6 +16,9 @@ from django.contrib.auth.models import User, Group
 from django.db import transaction
 from django.conf import settings
 from django.db.models import Q
+from django.shortcuts import redirect
+from django.http import Http404
+
 
 from .serializers import *
 from .models import *
@@ -35,8 +38,8 @@ class BoardViewSet(viewsets.ModelViewSet):
 
 class MakeGuessView(APIView):
     def post(self, request, *args, **kwargs):
-        game = get_object_or_404(Board, id=kwargs['game_id'])
-        result = game.check_guess(request.data['guess'])
+        board = get_object_or_404(Board, id=kwargs['game_id'])
+        result = board.check_guess(request.data['guess'])
 
         # # update on websockets
         # requests.post(
@@ -45,3 +48,30 @@ class MakeGuessView(APIView):
         # )
 
         return Response({'results': result})
+
+class DailyGameView(APIView):
+    def get(self, request, *args, **kwargs):
+        daily = Board.objects.daily()
+
+        # # update on websockets
+        # requests.post(
+        #     'http://websockets/broadcast/%d' % game.id,
+        #     json={'type': 'GAME_UPDATE'},
+        # )
+
+        return Response(BoardSerializer(daily).data)
+
+class BoardClientStateView(APIView):
+    def get(self, request, *args, **kwargs):
+        client_state = BoardClientState.objects.get_latest(board_id=kwargs['game_id'])
+
+        if client_state is None:
+            raise Http404("Board %s has no client state" % kwargs['game_id'])
+
+        return Response(BoardClientStateSerializer(client_state).data)
+
+
+    def post(self, request, *args, **kwargs):
+        client_state = BoardClientState.objects.create(board_id=kwargs['game_id'], **request.data)
+
+        return Response(BoardClientStateSerializer(client_state).data)

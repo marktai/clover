@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 export type AnswerType = [number, number];
 export type CardType = [string, string, string, string];
 
@@ -21,10 +23,19 @@ export type GameType = {
   created_time: string,
   last_updated_time: string,
   author: string,
+  daily_set_time: null|string,
 };
 
 type GameListResponse = {
   results: Array<GameType>,
+};
+
+export type BoardClientState = {
+  id: number,
+  board_id: number,
+  created_time: string,
+  data: any,
+  client_id: string,
 };
 
 export type GuessResponseType = Array<number>;
@@ -33,23 +44,23 @@ type GuessResponse = {
   results: GuessResponseType,
 };
 
-export async function http<T>(
+export async function httpJson<T>(
   request: RequestInfo
 ): Promise<T> {
-  const response: HttpResponse<T> = await fetch(
+  const response = await fetch(
     request
   );
   return await response.json();
 }
 
-export async function get<T>(
+export function getJson<T>(
   path: string,
   args: RequestInit = { method: "GET" }
 ): Promise<T> {
-  return await http<T>(new Request(path, args));
+  return httpJson<T>(new Request(path, args));
 };
 
-export async function post<T>(
+export function postJson<T>(
   path: string,
   body: any,
   args: RequestInit = {
@@ -60,24 +71,10 @@ export async function post<T>(
     },
   }
 ): Promise<T>  {
-  return await http<T>(new Request(path, args));
+  return httpJson<T>(new Request(path, args));
 };
 
-export async function put<T>(
-  path: string,
-  body: any,
-  args: RequestInit = {
-    method: "PUT",
-    body: JSON.stringify(body),
-    headers: {
-      'Content-Type': 'application/json'
-    },
-  }
-): Promise<T> {
-  return await http<T>(new Request(path, args));
-};
-
-export async function patch<T>(
+export function patchJson<T>(
   path: string,
   body: any,
   args: RequestInit = {
@@ -88,18 +85,22 @@ export async function patch<T>(
     },
   }
 ): Promise<T>  {
-  return await http<T>(new Request(path, args));
+  return httpJson<T>(new Request(path, args));
 };
 
 export default class CloverService {
   public static host = '/api';
 
-  public static async getGame(id: number|string): Promise<GameType> {
-    return await get<GameType>(`${this.host}/games/${id}`);
+  public static getGame(id: number|string): Promise<GameType> {
+    return getJson<GameType>(`${this.host}/games/${id}`);
+  }
+
+  public static getDailyGame(): Promise<GameType> {
+    return getJson<GameType>(`${this.host}/games/daily`);
   }
 
   public static async getGames(): Promise<Array<GameType>> {
-    const gamesResponse = await get<GameListResponse>(`${this.host}/games`);
+    const gamesResponse = await getJson<GameListResponse>(`${this.host}/games`);
     var sortedGames = gamesResponse.results.slice();
     sortedGames.sort((a, b) => {
       if (a.last_updated_time === b.last_updated_time) {
@@ -113,18 +114,18 @@ export default class CloverService {
     return sortedGames;
   }
 
-  public static async newGame(): Promise<GameType> {
-    return await post<GameType>(`${this.host}/games`, {});
+  public static newGame(): Promise<GameType> {
+    return postJson<GameType>(`${this.host}/games`, {});
   }
 
-  public static async submitClues(id: number|string, clues: Array<string>, suggestedNumCards: number, author: string): Promise<GameType> {
+  public static submitClues(id: number|string, clues: Array<string>, suggestedNumCards: number, author: string): Promise<GameType> {
     const body = {
       clues: clues,
       suggested_num_cards: suggestedNumCards,
       author: author,
     }
 
-    return await patch<GameType>(`${this.host}/games/${id}`, body);
+    return patchJson<GameType>(`${this.host}/games/${id}`, body);
   }
 
   public static async makeGuess(id: number|string, guess: Array<AnswerType>): Promise<GuessResponseType> {
@@ -132,8 +133,37 @@ export default class CloverService {
       guess: guess,
     }
 
-    const response = await post<GuessResponse>(`${this.host}/games/${id}/guess`, body);
+    const response = await postJson<GuessResponse>(`${this.host}/games/${id}/guess`, body);
     return response.results;
+  }
+
+  public static getClientId(): string {
+    const client_id_key = 'client_id';
+    let client_id = localStorage.getItem(client_id_key);
+    if (client_id === null) {
+      client_id = uuidv4();
+      localStorage.setItem(client_id_key, client_id as string);
+    }
+    return client_id;
+  }
+
+  public static async getClientState(id: number|string): Promise<null|BoardClientState> {
+    const response: HttpResponse<BoardClientState> = await fetch(`${this.host}/games/${id}/client_state`, { method: "GET" });
+    if (response.status === 404){
+      return null;
+    }
+    return await response.json();
+  }
+
+  public static updateClientState(id: number|string, data: any):   Promise<BoardClientState> {
+    const client_id = this.getClientId();
+
+    const body = {
+      data: data,
+      client_id: client_id,
+    }
+
+    return postJson<BoardClientState>(`${this.host}/games/${id}/client_state`, body);
   }
 }
 

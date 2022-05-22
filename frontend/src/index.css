@@ -49,22 +49,111 @@ ol, ul {
   margin-left: 20px;
 }
 
-.clover-card {
-  border: 1px grey solid;
+.clover-card.container {
+  border: 2px #808080 solid;
   border-radius: 4px;
   box-sizing: border-box;
+  z-index: 0;
+  padding-left: 8px;
+  padding-right: 8px;
+  margin: 4px;
+  padding: 4px;
 }
 
 .clover-card.selected {
-  box-shadow: 0 0 0 0.2rem rgb(108 117 125 / 50%)
+  box-shadow: 0 0 0 0.2rem blue
 }
 
-.clover-card.correct-card {
-  border: 4px green solid;
+.clover-card.container.duplicated {
+  color: #707070;
+  border-color: #D0D0D0;
 }
 
-.clover-card.correct-card-incorrect-rotation {
+.clover-card.correct-card,
+.clover-card.correct-card.duplicated {
+  border: 2px #00FF00 solid;
+}
+
+.correct-card-text {
+  color: #00FF00;
+}
+
+.clover-card.correct-card-incorrect-rotation,
+.clover-card.correct-card-incorrect-rotation.duplicated {
   border: 2px #F6BE00 solid;
 }
 
+.correct-card-incorrect-rotation-text {
+  color: #F6BE00;
+}
 
+.clover-card.incorrect-card,
+.clover-card.incorrect-card.duplicated {
+  border: 2px #FF0000 solid;
+}
+
+.incorrect-card-text {
+  color: #FF0000;
+}
+
+.clover-card .btn.btn-sm {
+  margin: 4px;
+  z-index: 1;
+  font-size: 20px;
+}
+
+.clover-card .word {
+  display: flex;
+  align-items: center; /* align vertical */
+  margin: 4px;
+}
+
+.clover-card .word-column {
+  display: flex;
+  flex-direction: column;
+  word-wrap: break-word;
+}
+
+.clover-card .word.left-word {
+  font-weight: bolder;
+}
+
+.clover-card .word.top-word {
+}
+
+.clover-card .word.bottom-word {
+  margin-top: auto;
+}
+
+.clover-card .button-column {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+input.clue {
+  text-align: right;
+}
+
+.clue {
+  position: relative;
+}
+
+.clue div,
+.clue input {
+  text-align: right;
+  position: absolute;
+  transform: translateY(-50%);
+  right: 0;
+}
+.clue div {
+  word-wrap: break-word;
+  width: 100%;
+}
+
+img.loader {
+   width:100%;
+   max-width: 100px;
+  display:block;
+  margin:auto;
+}
