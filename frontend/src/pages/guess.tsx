@@ -15,7 +15,7 @@ enum CardState {
   CorrectPosition,
 }
 
-const pollInterval = 60000;
+const pollInterval = 30000;
 
 function rotateArray<T>(a: Array<T>, n: number): Array<T> {
   n = n % a.length;
@@ -24,6 +24,7 @@ function rotateArray<T>(a: Array<T>, n: number): Array<T> {
 
 type GuessProps = {
   id: string,
+  syncState: boolean,
 };
 
 type GuessState = {
@@ -57,7 +58,10 @@ export class Guess extends React.Component<GuessProps, GuessState> {
     return `${this.props.id}/state`;
   }
 
-  pushClientState(): Promise<BoardClientState> {
+  pushClientState(): Promise<null|BoardClientState> {
+    if (!this.props.syncState) {
+      return Promise.resolve(null);
+    }
     const data = {
       guess: {
         cardPositions: this.state.guess.cardPositions,
@@ -65,10 +69,14 @@ export class Guess extends React.Component<GuessProps, GuessState> {
       previousGuesses: this.state.previousGuesses,
       guessSubmitted: this.state.guessSubmitted,
     }
-    return CloverService.updateClientState(this.props.id, data)
+    return CloverService.updateClientState(this.props.id, data);
   }
 
   async pullClientState(inputClientState: null|BoardClientState = null): Promise<null> {
+    if (!this.props.syncState) {
+      return Promise.resolve(null);
+    }
+
     let clientState: null|BoardClientState = inputClientState;
     if (clientState === null) {
       clientState = await CloverService.getClientState(this.props.id);
@@ -96,6 +104,10 @@ export class Guess extends React.Component<GuessProps, GuessState> {
   }
 
   async pollPushPull() {
+    if (!this.props.syncState) {
+      return;
+    }
+
     const currentClientState = await CloverService.getClientState(this.props.id);
     if (currentClientState === null || currentClientState.client_id === CloverService.getClientId()) {
       this.pushClientState();
@@ -404,125 +416,123 @@ export class Guess extends React.Component<GuessProps, GuessState> {
   }
 
   renderGame() {
-    if (this.state.game !== null) {
-      return (
-        <Col xs={12} lg={8}>
-          <Row>
-            <Col xs={3}/>
-            <Col xs={9} md={5}>{this.renderCard(0)}</Col>
-          </Row>
-          <Row>
-            <Col className="clue" xs={3}>
-              <div>{this.state.game?.clues?.[0]}</div>
-            </Col>
-            <Col xs={9} md={5}>{this.renderCard(1)}</Col>
-          </Row>
-          <Row>
-            <Col className="clue" xs={3}>
-              <div>{this.state.game?.clues?.[1]}</div>
-            </Col>
-            <Col xs={9} md={5}>{this.renderCard(2)}</Col>
-          </Row>
-          <Row>
-            <Col className="clue" xs={3}>
-              <div>{this.state.game?.clues?.[2]}</div>
-            </Col>
-            <Col xs={9} md={5}>{this.renderCard(3)}</Col>
-          </Row>
-          <Row>
-            <Col className="clue" xs={3}>
-              <div>{this.state.game?.clues?.[3]}</div>
-            </Col>
-            <Col xs={9} md={5}>{this.renderCard(0, true)}</Col>
-          </Row>
-          <Row>
-            <Col>
-              { this.renderSubmitButton() }
-            </Col>
-          </Row>
-          <Row>
-            { this.renderLeftoverCards() }
-          </Row>
+    return (
+      <Col xs={12} lg={8}>
+        <Row>
+          <Col xs={3}/>
+          <Col xs={9} md={5}>{this.renderCard(0)}</Col>
+        </Row>
+        <Row>
+          <Col className="clue" xs={3}>
+            <div>{this.state.game?.clues?.[0]}</div>
+          </Col>
+          <Col xs={9} md={5}>{this.renderCard(1)}</Col>
+        </Row>
+        <Row>
+          <Col className="clue" xs={3}>
+            <div>{this.state.game?.clues?.[1]}</div>
+          </Col>
+          <Col xs={9} md={5}>{this.renderCard(2)}</Col>
+        </Row>
+        <Row>
+          <Col className="clue" xs={3}>
+            <div>{this.state.game?.clues?.[2]}</div>
+          </Col>
+          <Col xs={9} md={5}>{this.renderCard(3)}</Col>
+        </Row>
+        <Row>
+          <Col className="clue" xs={3}>
+            <div>{this.state.game?.clues?.[3]}</div>
+          </Col>
+          <Col xs={9} md={5}>{this.renderCard(0, true)}</Col>
+        </Row>
+        <Row>
+          <Col>
+            { this.renderSubmitButton() }
+          </Col>
+        </Row>
+        <Row>
+          { this.renderLeftoverCards() }
+        </Row>
 
-          <Row>
-            { this.state.game?.suggested_num_cards } card clover game
-            { this.renderHistory() }
-            { this.renderShareButton() }
-          </Row>
-        </Col>
-      );
-    } else {
-      return <Col xs={12} lg={8}>
-        <img className="loader" src="https://www.marktai.com/download/54689/ZZ5H.gif"/>
-      </Col>;
-    }
+        <Row>
+          { this.state.game?.suggested_num_cards } card clover game
+          { this.renderHistory() }
+          { this.renderShareButton() }
+        </Row>
+      </Col>
+    );
   }
 
   render() {
-    return (
-      <div className="game">
-        <Container>
-          <Row>
-            { this.renderGame() }
-            <Col xs={12} lg={4}>
-              <h2>Tutorial</h2>
-              Rearrange the cards and figure out what {this.state.game?.author} had as their original card positions!
-              <ListGroup as="ol" numbered>
-                <ListGroup.Item as="li">
-                  <div>
-                    Each clue relates to the bolded work directly above and below the card
-                  </div>
-                  <div>
-                    - {this.state.game?.clues?.[0]} currently relates to <strong>{this.getCard(0)?.[1]}</strong> and <strong>{this.getCard(1)?.[0]}</strong>
-                  </div>
-                  <div>
-                    - {this.state.game?.clues?.[1]} currently relates to <strong>{this.getCard(1)?.[1]}</strong> and <strong>{this.getCard(2)?.[0]}</strong>
-                  </div>
-                  <ListGroup variant="flush">
-                    <ListGroup.Item>
-                      <div>
-                        The first card is duplicated as the first and fifth card shown. This is for your convenience.
-                      </div>
-                      <div>
-                        - {this.state.game?.clues?.[3]} currently relates to <strong>{this.getCard(3)?.[1]}</strong> and <strong>{this.getCard(0)?.[0]}</strong>
-                      </div>
-                    </ListGroup.Item>
-                  </ListGroup>
-                </ListGroup.Item>
-                <ListGroup.Item as="li">
-                  Click on one card, then another to swap them
-                </ListGroup.Item>
-                <ListGroup.Item as="li">
-                  Click on the rotation buttons to rotate clockwise ↻ and counterclockwise ↺
-                </ListGroup.Item>
-                <ListGroup.Item as="li">
-                  Press "Submit Guess" to check your guess
-                </ListGroup.Item>
-                <ListGroup.Item as="li">
-                  <ListGroup variant="flush">
-                    <ListGroup.Item>
-                      Correct cards will show up with a <span className="correct-card-text">green</span> border
-                    </ListGroup.Item>
-                    <ListGroup.Item>
-                      Correctly positioned cards, but incorrectly rotated cards will have a <span className="correct-card-incorrect-rotation-text">yellow</span> border.
-                    </ListGroup.Item>
-                    <ListGroup.Item>
-                      Incorrect cards will have a <span className="incorrect-card-text">red</span> border.
-                    </ListGroup.Item>
-                  </ListGroup>
-                </ListGroup.Item>
-              </ListGroup>
-            </Col>
-          </Row>
-        </Container>
-      </div>
-    );
+    if (this.state.game !== null) {
+      return (
+        <div className="game">
+          <Container>
+            <Row>
+              { this.renderGame() }
+              <Col xs={12} lg={4}>
+                <h2>Tutorial</h2>
+                Rearrange the cards and figure out what {this.state.game?.author} had as their original card positions!
+                <ListGroup as="ol" numbered>
+                  <ListGroup.Item as="li">
+                    <div>
+                      Each clue relates to the bolded work directly above and below the card
+                    </div>
+                    <div>
+                      - {this.state.game?.clues?.[0]} currently relates to <strong>{this.getCard(0)?.[1]}</strong> and <strong>{this.getCard(1)?.[0]}</strong>
+                    </div>
+                    <div>
+                      - {this.state.game?.clues?.[1]} currently relates to <strong>{this.getCard(1)?.[1]}</strong> and <strong>{this.getCard(2)?.[0]}</strong>
+                    </div>
+                    <ListGroup variant="flush">
+                      <ListGroup.Item>
+                        <div>
+                          The first card is duplicated as the first and fifth card shown. This is for your convenience.
+                        </div>
+                        <div>
+                          - {this.state.game?.clues?.[3]} currently relates to <strong>{this.getCard(3)?.[1]}</strong> and <strong>{this.getCard(0)?.[0]}</strong>
+                        </div>
+                      </ListGroup.Item>
+                    </ListGroup>
+                  </ListGroup.Item>
+                  <ListGroup.Item as="li">
+                    Click on one card, then another to swap them
+                  </ListGroup.Item>
+                  <ListGroup.Item as="li">
+                    Click on the rotation buttons to rotate clockwise ↻ and counterclockwise ↺
+                  </ListGroup.Item>
+                  <ListGroup.Item as="li">
+                    Press "Submit Guess" to check your guess
+                  </ListGroup.Item>
+                  <ListGroup.Item as="li">
+                    <ListGroup variant="flush">
+                      <ListGroup.Item>
+                        Correct cards will show up with a <span className="correct-card-text">green</span> border
+                      </ListGroup.Item>
+                      <ListGroup.Item>
+                        Correctly positioned cards, but incorrectly rotated cards will have a <span className="correct-card-incorrect-rotation-text">yellow</span> border.
+                      </ListGroup.Item>
+                      <ListGroup.Item>
+                        Incorrect cards will have a <span className="incorrect-card-text">red</span> border.
+                      </ListGroup.Item>
+                    </ListGroup>
+                  </ListGroup.Item>
+                </ListGroup>
+              </Col>
+            </Row>
+          </Container>
+        </div>
+      );
+    } else {
+      return <img className="loader" src="https://www.marktai.com/download/54689/ZZ5H.gif"/>
+    }
   }
 }
 
 const GuessContainer = () => {
   const urlId = useParams().id as string;
-  return <Guess id={urlId} />;
+  return <Guess id={urlId} syncState={true}/>;
 };
 
 export default GuessContainer;

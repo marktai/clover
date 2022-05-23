@@ -163,112 +163,110 @@ class Clues extends React.Component<CluesProps, CluesState> {
   }
 
   renderGame() {
-    if (this.state.game !== null) {
-      return (
-        <Col xs={12} lg={8}>
-          <Row>
-            <Col xs={4}></Col>
-            <Col xs={8}>{this.renderCard(0)}</Col>
-          </Row>
-          <Row>
-            <Col xs={4} className="clue">
-              {this.renderClueInput(0)}
-            </Col>
-            <Col xs={8}>{this.renderCard(1)}</Col>
-          </Row>
-          <Row>
-            <Col xs={4} className="clue">
-              {this.renderClueInput(1)}
-            </Col>
-            <Col xs={8}>{this.renderCard(2)}</Col>
-          </Row>
-          <Row>
-            <Col xs={4} className="clue">
-              {this.renderClueInput(2)}
-            </Col>
-            <Col xs={8}>{this.renderCard(3)}</Col>
-          </Row>
-          <Row>
-            <Col xs={4} className="clue">
-              {this.renderClueInput(3)}
-            </Col>
-            <Col xs={8}>{this.renderCard(0)}</Col>
-          </Row>
-          <Row>
-            <Col>
-              <span>Extra cards: </span>
-              <span>{this.renderNumCardsSelect()}</span>
-            </Col>
-            <Col>{this.renderAuthorInput()}</Col>
-            <Col>
-              { this.renderSubmitCluesButton () }
-            </Col>
-          </Row>
-          {
-            this.state.game?.clues != null ?
-              <Row>
-                <Col>Clues submitted at {this.state.game?.last_updated_time}! To guess, go to <a href={`http://clover.marktai.com/games/${this.props.id}/guess`}>http://clover.marktai.com/games/{this.props.id}/guess</a>
-                </Col>
-              </Row>
-            : null
-          }
-        </Col>
-      );
-    } else {
-      return <Col xs={12} lg={8}>
-        <img className="loader" src="https://www.marktai.com/download/54689/ZZ5H.gif"/>
-      </Col>;
-    }
+    return (
+      <Col xs={12} lg={8}>
+        <Row>
+          <Col xs={4}></Col>
+          <Col xs={8}>{this.renderCard(0)}</Col>
+        </Row>
+        <Row>
+          <Col xs={4} className="clue">
+            {this.renderClueInput(0)}
+          </Col>
+          <Col xs={8}>{this.renderCard(1)}</Col>
+        </Row>
+        <Row>
+          <Col xs={4} className="clue">
+            {this.renderClueInput(1)}
+          </Col>
+          <Col xs={8}>{this.renderCard(2)}</Col>
+        </Row>
+        <Row>
+          <Col xs={4} className="clue">
+            {this.renderClueInput(2)}
+          </Col>
+          <Col xs={8}>{this.renderCard(3)}</Col>
+        </Row>
+        <Row>
+          <Col xs={4} className="clue">
+            {this.renderClueInput(3)}
+          </Col>
+          <Col xs={8}>{this.renderCard(0)}</Col>
+        </Row>
+        <Row>
+          <Col>
+            <span>Extra cards: </span>
+            <span>{this.renderNumCardsSelect()}</span>
+          </Col>
+          <Col>{this.renderAuthorInput()}</Col>
+          <Col>
+            { this.renderSubmitCluesButton () }
+          </Col>
+        </Row>
+        {
+          this.state.game?.clues != null ?
+            <Row>
+              <Col>Clues submitted at {this.state.game?.last_updated_time}! To guess, go to <a href={`http://clover.marktai.com/games/${this.props.id}/guess`}>http://clover.marktai.com/games/{this.props.id}/guess</a>
+              </Col>
+            </Row>
+          : null
+        }
+      </Col>
+    );
   }
 
   render() {
-    return (
-      <div className="game">
-        <Container>
-          <Row>
-            { this.renderGame() }
-            <Col xs={12} lg={4}>
-              <h2>Tutorial</h2>
-              Create 1 word clues so that future people playing your puzzle will be able to figure out your original cards after they are all shuffled!
-              <ListGroup as="ol" numbered>
-                <ListGroup.Item as="li">
-                  <div>
-                    Each clue relates to the bolded work directly above and below the clue.
-                  </div>
-                  <div>
-                    - {this.state.formData.clues[0] || "Clue 1"} relates to <strong>{this.state.game?.answer_cards?.[0]?.[1]}</strong> and <strong>{this.state.game?.answer_cards?.[1]?.[0]}</strong>
-                  </div>
-                  <div>
-                    - {this.state.formData.clues[1] || "Clue 2"} relates to <strong>{this.state.game?.answer_cards?.[1]?.[1]}</strong> and <strong>{this.state.game?.answer_cards?.[2]?.[0]}</strong>
-                  </div>
-                  <ListGroup variant="flush">
-                    <ListGroup.Item>
-                      <div>
-                        The first card is duplicated as the first and fifth card shown. This is for your convenience.
-                      </div>
-                      <div>
-                        - {this.state.formData.clues[3] || "Clue 4"} relates to <strong>{this.state.game?.answer_cards?.[3]?.[1]}</strong> and <strong>{this.state.game?.answer_cards?.[0]?.[0]}</strong>
-                      </div>
-                    </ListGroup.Item>
-                  </ListGroup>
-                </ListGroup.Item>
-                <ListGroup.Item as="li">
-                  <div>
-                    When you are ready with all of your clues, select how many cards you will use in puzzle
-                  </div>
-                  <div>
-                    - 1 extra card means there will be 5 cards total when guessing
-                  </div>
-                </ListGroup.Item>
-                <ListGroup.Item as="li">
-                  Add your name, and press "Submit Clues" when you are done!
-                </ListGroup.Item>
-              </ListGroup>
-            </Col>
-          </Row>
-        </Container>
-      </div>
-    );
+    if (this.state.game !== null) {
+      return (
+        <div className="game">
+          <Container>
+            <Row>
+              { this.renderGame() }
+              <Col xs={12} lg={4}>
+                <h2>Tutorial</h2>
+                Create 1 word clues so that future people playing your puzzle will be able to figure out your original cards after they are all shuffled!
+                <ListGroup as="ol" numbered>
+                  <ListGroup.Item as="li">
+                    <div>
+                      Each clue relates to the bolded work directly above and below the clue.
+                    </div>
+                    <div>
+                      - {this.state.formData.clues[0] || "Clue 1"} relates to <strong>{this.state.game?.answer_cards?.[0]?.[1]}</strong> and <strong>{this.state.game?.answer_cards?.[1]?.[0]}</strong>
+                    </div>
+                    <div>
+                      - {this.state.formData.clues[1] || "Clue 2"} relates to <strong>{this.state.game?.answer_cards?.[1]?.[1]}</strong> and <strong>{this.state.game?.answer_cards?.[2]?.[0]}</strong>
+                    </div>
+                    <ListGroup variant="flush">
+                      <ListGroup.Item>
+                        <div>
+                          The first card is duplicated as the first and fifth card shown. This is for your convenience.
+                        </div>
+                        <div>
+                          - {this.state.formData.clues[3] || "Clue 4"} relates to <strong>{this.state.game?.answer_cards?.[3]?.[1]}</strong> and <strong>{this.state.game?.answer_cards?.[0]?.[0]}</strong>
+                        </div>
+                      </ListGroup.Item>
+                    </ListGroup>
+                  </ListGroup.Item>
+                  <ListGroup.Item as="li">
+                    <div>
+                      When you are ready with all of your clues, select how many cards you will use in puzzle
+                    </div>
+                    <div>
+                      - 1 extra card means there will be 5 cards total when guessing
+                    </div>
+                  </ListGroup.Item>
+                  <ListGroup.Item as="li">
+                    Add your name, and press "Submit Clues" when you are done!
+                  </ListGroup.Item>
+                </ListGroup>
+              </Col>
+            </Row>
+          </Container>
+        </div>
+      );
+    } else {
+      return <img className="loader" src="https://www.marktai.com/download/54689/ZZ5H.gif"/>
+    }
   }
 }
 

@@ -94,7 +94,7 @@ class List extends React.Component<ListProps, ListState> {
                 To solve the clues for an existing game, click on any listed game
               </ListGroup.Item>
             </ListGroup>
-            <Button variant={"danger"} onClick={() => {this.clearAllState()}}>Clear all state!</Button>
+            <Button variant={"danger"} onClick={() => {this.clearAllState()}}>Clear all local state!</Button>
           </Col>
         </Row>
       </Container>

@@ -34,9 +34,10 @@ class BoardManager(models.Manager):
         return board
 
     def daily(self):
-        la_tz = pytz.timezone('Etc/GMT-7')
-        la_now = datetime.now(la_tz).astimezone(la_tz)
-        la_day_begin = datetime(la_now.year, la_now.month, la_now.day, tzinfo=la_tz).astimezone(pytz.timezone('UTC'))
+        la_tz = pytz.timezone('America/Los_Angeles')
+        utc_now = datetime.utcnow()
+        la_now = datetime.utcnow().replace(tzinfo=pytz.utc).astimezone(la_tz)
+        la_day_begin = datetime(la_now.year, la_now.month, la_now.day,  hour=0, minute=0, second=0, microsecond=0).astimezone(la_tz)
 
         existing = self.filter(
             daily_set_time__gte=la_day_begin,
@@ -172,7 +173,7 @@ class Board(models.Model):
 
 class BoardClientStateManager(models.Manager):
     def get_latest(self, board_id):
-        return self.filter(board=board_id, created_time__gte=(datetime.now() - timedelta(minutes=5))).order_by('-id').first()
+        return self.filter(board=board_id, created_time__gte=(datetime.now() - timedelta(minutes=2))).order_by('-id').first()
 
 class BoardClientState(models.Model):
     objects = BoardClientStateManager()

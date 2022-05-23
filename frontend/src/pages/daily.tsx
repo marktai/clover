@@ -23,7 +23,7 @@ export class Daily extends React.Component<{}, DailyState> {
     if (this.state.game === null){
       return <div> <img className="loader" src="https://www.marktai.com/download/54689/ZZ5H.gif"/> </div>
     } else {
-      return <Guess id={this.state.game.id.toString()}/>
+      return <Guess id={this.state.game.id.toString()} syncState={false}/>
     }
   }
 }
