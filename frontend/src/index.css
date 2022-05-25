@@ -49,7 +49,7 @@ ol, ul {
   margin-left: 20px;
 }
 
-.clover-card.container {
+.clover-card {
   border: 2px #808080 solid;
   border-radius: 4px;
   box-sizing: border-box;
@@ -58,6 +58,10 @@ ol, ul {
   padding-right: 8px;
   margin: 4px;
   padding: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  position: relative;
+  animation-duration: 0.5s;
 }
 
 .clover-card.selected {
@@ -78,57 +82,96 @@ ol, ul {
   color: #00FF00;
 }
 
-.clover-card.correct-card-incorrect-rotation,
-.clover-card.correct-card-incorrect-rotation.duplicated {
-  border: 2px #F6BE00 solid;
+.clover-card.correct-position,
+.clover-card.correct-position.duplicated {
+  border: 2px #f5ed00 solid;
 }
 
-.correct-card-incorrect-rotation-text {
-  color: #F6BE00;
+.correct-position-text {
+  color: #f5ed00;
+}
+
+.clover-card.correct-position-incorrect-rotation,
+.clover-card.correct-position-incorrect-rotation.duplicated {
+  border: 2px #FF9933 solid;
+}
+
+.correct-position-incorrect-rotation-text {
+  color: #FF9933;
 }
 
 .clover-card.incorrect-card,
 .clover-card.incorrect-card.duplicated {
-  border: 2px #FF0000 solid;
+  border: 2px #B80000 solid;
 }
 
 .incorrect-card-text {
-  color: #FF0000;
-}
-
-.clover-card .btn.btn-sm {
-  margin: 4px;
-  z-index: 1;
-  font-size: 20px;
+  color: #B80000;
 }
 
 .clover-card .word {
-  display: flex;
-  align-items: center; /* align vertical */
-  margin: 4px;
+  margin-left: 0;
+  margin-top: 0;
+  width: 50%;
+  padding: 4px;
+  word-wrap: break-word;
 }
 
-.clover-card .word-column {
-  display: flex;
-  flex-direction: column;
-  word-wrap: break-word;
+.clover-card .shown-word {
+  transition-property: left, right, top, bottom, transform;
+  transition-timing-function: ease-out;
+  transition-duration: inherit;
+  transform: translateX(0) translateY(0);
+  position: absolute;
+  left: 0;
+  right: 100%;
+  top: 0;
+  bottom: 100%;
+}
+
+.clover-card .word.hidden-word {
+  visibility: hidden;
 }
 
 .clover-card .word.left-word {
   font-weight: bolder;
+  left: 0;
+  right: 100%;
 }
 
 .clover-card .word.top-word {
+  top: 0;
+  bottom: 100%;
 }
 
 .clover-card .word.bottom-word {
-  margin-top: auto;
+  top: 100%;
+  bottom: 0;
+  transform: translateX(0) translateY(calc(-2em - 4px));
+  vertical-align: text-bottom;
 }
 
-.clover-card .button-column {
+.clover-card .word.right-word {
+  left: 100%;
+  right: 0;
+  transform: translateX(-100%) translateY(0);
+  text-align:right;
+}
+
+.clover-card .word.right-word.bottom-word {
+  transform: translateX(-100%) translateY(calc(-2em - 4px));
+}
+
+.button-column {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.button-column .btn.btn-sm {
+  margin: 4px;
+  z-index: 1;
+  font-size: 20px;
 }
 
 input.clue {

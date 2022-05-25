@@ -183,3 +183,9 @@ class BoardClientState(models.Model):
     data = models.JSONField()
     client_id = models.CharField(max_length=50)
 
+class BoardGuess(models.Model):
+    board = models.ForeignKey(Board, on_delete=models.CASCADE)
+    created_time = models.DateTimeField(auto_now_add=True)
+    data = models.JSONField()
+    client_id = models.CharField(max_length=50, blank=True)
+

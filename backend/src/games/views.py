@@ -32,14 +32,36 @@ class BoardViewSet(viewsets.ModelViewSet):
     serializer_class = BoardSerializer
     queryset = Board.objects.all()
 
+    def list(self, request):
+        q = self.queryset.filter(clues__isnull=False).order_by('-last_updated_time')
+        serializer = self.serializer_class(q, many=True)
+        return Response(serializer.data)
+
     def create(self, request, *args, **kwargs):
         new_board = Board.objects.create_board()
         return Response(BoardSerializer(new_board).data)
+
+    def update(self, *args, **kwargs):
+        ret = super().update(*args, **kwargs)
+
+        # update on websockets
+        requests.post(
+            'http://websockets/broadcast/list',
+            json={'type': 'LIST_UPDATE'},
+        )
+        return ret
+
 
 class MakeGuessView(APIView):
     def post(self, request, *args, **kwargs):
         board = get_object_or_404(Board, id=kwargs['game_id'])
         result = board.check_guess(request.data['guess'])
+
+        BoardGuess.objects.create(
+            board_id=board.id,
+            data=request.data['guess'],
+            client_id=request.data.get('client_id', ''),
+        )
 
         return Response({'results': result})
 

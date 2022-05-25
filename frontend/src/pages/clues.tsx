@@ -22,8 +22,6 @@ type CluesState = {
   gameSubmitted: boolean,
 };
 
-const authorKey = 'author';
-
 class Clues extends React.Component<CluesProps, CluesState> {
   state: CluesState = {
     game: null,
@@ -60,7 +58,7 @@ class Clues extends React.Component<CluesProps, CluesState> {
       formData: {
         clues: game.clues ?? ['', '', '', ''],
         suggestedNumClues: ((game.suggested_num_cards ?? 5) - 4).toString(),
-        author: game.author || (localStorage.getItem(authorKey) ?? ''),
+        author: game.author || (localStorage.getItem(CloverService.authorKey) ?? ''),
       },
     });
   }
@@ -85,8 +83,7 @@ class Clues extends React.Component<CluesProps, CluesState> {
         type="text"
         className="clue"
         value={this.state.formData.clues[i]}
-        // @ts-ignore
-        autocapitalize="none"
+        autoCapitalize="none"
         onChange={(e) => {
           const newClues = this.state.formData.clues.slice();
           newClues[i] = e.target.value;
@@ -118,7 +115,7 @@ class Clues extends React.Component<CluesProps, CluesState> {
             },
             gameSubmitted: false,
           });
-          localStorage.setItem(authorKey, e.target.value);
+          localStorage.setItem(CloverService.authorKey, e.target.value);
         }}
         placeholder="Your name"
       />

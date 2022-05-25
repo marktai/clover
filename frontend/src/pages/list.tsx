@@ -19,6 +19,7 @@ class List extends React.Component<ListProps, ListState> {
   state: ListState = {
     games: null,
   };
+  ws: null|WebSocket = null;
 
   async refresh() {
     const games = await CloverService.getGames();
@@ -29,6 +30,16 @@ class List extends React.Component<ListProps, ListState> {
 
   async componentDidMount() {
     await this.refresh();
+
+    if (this.ws === null) {
+      this.ws = new WebSocket(`wss://${window.location.host}/ws/listen/list`);
+      this.ws.onmessage = async (event) => {
+        const message: any = JSON.parse(event.data);
+        if (message.type === 'LIST_UPDATE') {
+          await this.refresh();
+        }
+      }
+    }
   }
 
   async newGame() {
@@ -94,7 +105,10 @@ class List extends React.Component<ListProps, ListState> {
                 To solve the clues for an existing game, click on any listed game
               </ListGroup.Item>
             </ListGroup>
-            <Button variant={"danger"} onClick={() => {this.clearAllState()}}>Clear all local state!</Button>
+            <div>
+              If you are having any issues with loading only some puzzles or some puzzles have the wrong information, click this button.
+              <Button variant={"danger"} onClick={() => {this.clearAllState()}}>Clear all local state!</Button>
+            </div>
           </Col>
         </Row>
       </Container>

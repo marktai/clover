@@ -26,10 +26,6 @@ export type GameType = {
   daily_set_time: null|string,
 };
 
-type GameListResponse = {
-  results: Array<GameType>,
-};
-
 export type BoardClientState = {
   id: number,
   board_id: number,
@@ -100,8 +96,8 @@ export default class CloverService {
   }
 
   public static async getGames(): Promise<Array<GameType>> {
-    const gamesResponse = await getJson<GameListResponse>(`${this.host}/games`);
-    var sortedGames = gamesResponse.results.slice();
+    const gamesResponse = await getJson<Array<GameType>>(`${this.host}/games`);
+    var sortedGames = gamesResponse.slice();
     sortedGames.sort((a, b) => {
       if (a.last_updated_time === b.last_updated_time) {
         return 0;
@@ -131,20 +127,24 @@ export default class CloverService {
   public static async makeGuess(id: number|string, guess: Array<AnswerType>): Promise<GuessResponseType> {
     const body = {
       guess: guess,
+      client_id: this.getClientId(),
     }
 
     const response = await postJson<GuessResponse>(`${this.host}/games/${id}/guess`, body);
     return response.results;
   }
 
+  public static authorKey = 'author';
+  public static clientIdKey = 'client_id';
+
   public static getClientId(): string {
-    const client_id_key = 'client_id';
-    let client_id = localStorage.getItem(client_id_key);
-    if (client_id === null) {
-      client_id = uuidv4();
-      localStorage.setItem(client_id_key, client_id as string);
+    let author = localStorage.getItem(this.authorKey);
+    let clientId = localStorage.getItem(this.clientIdKey);
+    if (clientId === null) {
+      clientId = uuidv4();
+      localStorage.setItem(this.clientIdKey, clientId as string);
     }
-    return client_id;
+    return `${author ?? 'anon'}-${clientId}`;
   }
 
   public static async getClientState(id: number|string): Promise<null|BoardClientState> {

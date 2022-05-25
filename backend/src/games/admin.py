@@ -17,6 +17,14 @@ from . import models
 @admin.register(models.Board)
 class BoardAdmin(admin.ModelAdmin):
     pass
+
+@admin.register(models.BoardClientState)
+class BoardClientStateAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(models.BoardGuess)
+class BoardGuessAdmin(admin.ModelAdmin):
+    pass
     # fields = ('fen', 'turn_count', 'game_link', 'created_time', 'last_updated_time')
     # readonly_fields = ('game_link', 'created_time', 'last_updated_time')
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { useEffect } from 'react';
 import CloverService from '../api';
 import { GameType, AnswerType, CardType, GuessResponseType, BoardClientState } from '../api';
+import * as $ from 'jquery';
 
 import { Container, Row, Col, Button, ListGroup } from 'react-bootstrap';
 
@@ -13,6 +14,7 @@ enum CardState {
   Incorrect,
   Correct,
   CorrectPosition,
+  CorrectPositionIncorrectRotation,
 }
 
 const pollInterval = 30000;
@@ -160,13 +162,15 @@ export class Guess extends React.Component<GuessProps, GuessState> {
       this.interval = setInterval(() => { this.pollPushPull() }, pollInterval);
     }
 
-    this.ws = new WebSocket(`ws://${window.location.host}/ws/listen/${this.props.id}`);
-    this.ws.onmessage = (event) => {
-      const message: any = JSON.parse(event.data);
-      if (message.type === 'GAME_UPDATE') {
-        this.pullClientState(message.data);
-      }
-    };
+    if (this.ws === null) {
+      this.ws = new WebSocket(`wss://${window.location.host}/ws/listen/${this.props.id}`);
+      this.ws.onmessage = (event) => {
+        const message: any = JSON.parse(event.data);
+        if (message.type === 'GAME_UPDATE') {
+          this.pullClientState(message.data);
+        }
+      };
+    }
 
     await this.setStateWithWrite({
       ...defaultGuessState,
@@ -187,7 +191,7 @@ export class Guess extends React.Component<GuessProps, GuessState> {
   //   knowledge, set_of_applicable_cards,
   //   0, [[0,0], [1,1]],
   //   1, [[2,2]],
-  //   2, [[3,3]],
+  //   2, [[3,3], [3,1]],
   // ]
   positionKnowledge(): Array<[number, Array<AnswerType>]> {
     const init: Array<[number, Array<AnswerType>]> = Array(4).fill(
@@ -195,13 +199,19 @@ export class Guess extends React.Component<GuessProps, GuessState> {
     );
     return this.state.previousGuesses.reduce( (acc, cur) => {
       return cur[1].map( (r, i) => {
-        if (r !== 0 && (acc[i][0] === 0 || r < acc[i][0])) {
-          return [r, [cur[0][i]]];
+        if (r !== 0) {
+          if ((acc[i][0] === 0 || r < acc[i][0])) {
+            return [r, [cur[0][i]]];
+          } else if(r == acc[i][0]){
+            return [r, acc[i][1].concat([cur[0][i]])];
+          } else {
+            return acc[i];
+          }
         } else {
           return [acc[i][0], acc[i][1].concat([cur[0][i]])];
         }
       });
-    }, init)
+    }, init);
   }
 
   rotateCard(i: number, n: number, e: any) {
@@ -211,6 +221,12 @@ export class Guess extends React.Component<GuessProps, GuessState> {
     // https://stackoverflow.com/questions/4467539/javascript-modulo-gives-a-negative-result-for-negative-numbers
     const newRotation = (((this.state.guess.cardPositions[i][1] + n) % 4) + 4) % 4;
     newCardPositions[i][1] = newRotation;
+    const cardDom = $(`.clover-card#${i.toString()}`).get(0);
+    console.log(cardDom);
+    cardDom.style['transition-duration'] = '0.3s';
+    setTimeout(() => {
+      cardDom.style['transition-duration'] = '0s';
+    }, 300);
     this.setStateWithWrite({
       guess: {
         ...this.state.guess,
@@ -315,6 +331,13 @@ export class Guess extends React.Component<GuessProps, GuessState> {
       return null;
     }
 
+    const cardPosition = this.state.guess.cardPositions[i];
+    const originalCard = this.state.game?.suggested_possible_cards?.[cardPosition[0]] as CardType;
+    const cardRotations = rotateArray(
+      [0, 1, 2, 3],
+      -1 * cardPosition[1],
+    );
+
     const card = this.getCard(i);
 
     const positionKnowledge = this.positionKnowledge();
@@ -327,13 +350,25 @@ export class Guess extends React.Component<GuessProps, GuessState> {
       ) {
         if (positionKnowledge[i][0] === 0) {
           cardState = CardState.Incorrect;
-        } else if (positionKnowledge[i][0] === 1 &&
-          // matching position and rotation
+        } else if (positionKnowledge[i][0] === 1) {
+          if (
+            // matching position and rotation
             positionKnowledge[i][1].some( (j) => j[0] === this.state.guess.cardPositions[i][0] && j[1] === this.state.guess.cardPositions[i][1] )
-        ) {
-          cardState = CardState.Correct;
-        } else {
-          cardState = CardState.CorrectPosition;
+          ) {
+            cardState = CardState.Correct;
+          } else {
+            cardState = CardState.CorrectPositionIncorrectRotation;
+          }
+        } else if (positionKnowledge[i][0] === 2) {
+          if (
+            // matching position and rotation
+            positionKnowledge[i][1].some( (j) => j[0] === this.state.guess.cardPositions[i][0] && j[1] === this.state.guess.cardPositions[i][1] )
+          ) {
+
+            cardState = CardState.CorrectPositionIncorrectRotation;
+          } else {
+            cardState = CardState.CorrectPosition;
+          }
         }
       } else if (positionKnowledge[i][0] > 0) {
         cardState = CardState.Incorrect;
@@ -343,10 +378,28 @@ export class Guess extends React.Component<GuessProps, GuessState> {
 
     let cardClasses = ['clover-card'];
 
+    let wordClasses = Array(4).fill(['word', 'shown-word']);
+    for (let i = 0; i < 4; i++) {
+      if (cardRotations[i] === 0){
+        wordClasses[i] = wordClasses[i].concat(['left-word', 'top-word']);
+      }
+      else if (cardRotations[i] === 1){
+        wordClasses[i] = wordClasses[i].concat(['left-word', 'bottom-word']);
+      }
+      else if (cardRotations[i] === 2){
+        wordClasses[i] = wordClasses[i].concat(['right-word', 'bottom-word']);
+      }
+      else if (cardRotations[i] === 3){
+        wordClasses[i] = wordClasses[i].concat(['right-word', 'top-word']);
+      }
+    }
+
     if (cardState === CardState.Correct) {
       cardClasses.push('correct-card');
     } else if (cardState === CardState.CorrectPosition) {
-      cardClasses.push('correct-card-incorrect-rotation');
+      cardClasses.push('correct-position');
+    } else if (cardState === CardState.CorrectPositionIncorrectRotation) {
+      cardClasses.push('correct-position-incorrect-rotation');
     } else if (cardState === CardState.Incorrect) {
       cardClasses.push('incorrect-card');
     }
@@ -360,23 +413,31 @@ export class Guess extends React.Component<GuessProps, GuessState> {
     }
 
     return (
-      <Container className={cardClasses.join(' ')}onClick={(e) => this.handleCardClick(i, e)}>
+      <Container>
         <Row>
-          <Col className="word-column" xs={4}>
-            <div className="word left-word top-word">{card?.[0]}</div>
-            <div className="word left-word bottom-word">{card?.[1]}</div>
+          <Col xs={10} xl={9}>
+            <div className={cardClasses.join(' ')} onClick={(e) => this.handleCardClick(i, e)} id={i.toString()}>
+
+
+              <div className="word left-word top-word hidden-word">{card?.[0]}</div>
+              <div className="word right-word top-word hidden-word">{card?.[3]}</div>
+              <div className="word left-word bottom-word hidden-word">{card?.[1]}</div>
+              <div className="word right-word bottom-word hidden-word">{card?.[2]}</div>
+
+              <div className={wordClasses[0].join(' ')}>{originalCard[0]}</div>
+              <div className={wordClasses[1].join(' ')}>{originalCard[1]}</div>
+              <div className={wordClasses[2].join(' ')}>{originalCard[2]}</div>
+              <div className={wordClasses[3].join(' ')}>{originalCard[3]}</div>
+            </div>
           </Col>
-          <Col className="button-column" xs={3}>
+
+          <Col className="button-column" xs={2} xl={3}>
             <div>
               <Button size='sm' onClick={(e) => {this.rotateCard(i, 1, e)}}>↻</Button>
             </div>
             <div className="d-none d-xl-block d-xxl-block" >
               <Button size='sm' onClick={(e) => {this.rotateCard(i, -1, e)}}>↺</Button>
             </div>
-          </Col>
-          <Col className="word-column" xs={4}>
-            <div className="word right-word top-word">{card?.[3]}</div>
-            <div className="word right-word bottom-word">{card?.[2]}</div>
           </Col>
         </Row>
       </Container>
@@ -511,10 +572,13 @@ export class Guess extends React.Component<GuessProps, GuessState> {
                         Correct cards will show up with a <span className="correct-card-text">green</span> border
                       </ListGroup.Item>
                       <ListGroup.Item>
-                        Correctly positioned cards, but incorrectly rotated cards will have a <span className="correct-card-incorrect-rotation-text">yellow</span> border.
+                        Correctly positioned cards will have a <span className="correct-position-text">yellow</span> border. This is basically rotations you haven't tried before but you know it's the right position.
                       </ListGroup.Item>
                       <ListGroup.Item>
-                        Incorrect cards will have a <span className="incorrect-card-text">red</span> border.
+                        Correctly positioned cards, but incorrectly rotated cards will have a <span className="correct-position-incorrect-rotation-text">orange</span> border. This is basically rotations you've already tried before.
+                      </ListGroup.Item>
+                      <ListGroup.Item>
+                        Incorrect cards will have a <span className="incorrect-card-text">red</span> border
                       </ListGroup.Item>
                     </ListGroup>
                   </ListGroup.Item>
