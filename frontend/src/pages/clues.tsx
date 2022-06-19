@@ -5,11 +5,13 @@ import { GameType } from '../api';
 import { Container, Row, Col, Form, Button, ListGroup } from 'react-bootstrap';
 
 import {
-  useParams
+  useParams,
+  useNavigate,
 } from "react-router-dom";
 
 type CluesProps = {
   id: string,
+  navigate: any,
 };
 
 type CluesState = {
@@ -48,7 +50,8 @@ class Clues extends React.Component<CluesProps, CluesState> {
         author: game.author,
       },
       gameSubmitted: true,
-    })
+    });
+    // this.props.navigate(`/games/${game.id}/guess`);
   }
 
   async componentDidMount() {
@@ -66,14 +69,12 @@ class Clues extends React.Component<CluesProps, CluesState> {
   renderCard(i: number) {
     const card = this.state.game?.answer_cards?.[i]
     return (
-      <Container className="clover-card">
-        <Row>
-          <Col><strong>{card?.[0]}</strong></Col> <Col>{card?.[3]}</Col>
-        </Row>
-        <Row>
-          <Col><strong>{card?.[1]}</strong></Col> <Col>{card?.[2]}</Col>
-        </Row>
-      </Container>
+      <div className="clover-card clue-card">
+        <div className="word left-word bold-word top-word">{card?.[0]}</div>
+        <div className="word right-word top-word">{card?.[3]}</div>
+        <div className="word left-word bold-word bottom-word">{card?.[1]}</div>
+        <div className="word right-word bottom-word">{card?.[2]}</div>
+      </div>
     );
   }
 
@@ -268,8 +269,9 @@ class Clues extends React.Component<CluesProps, CluesState> {
 }
 
 const CluesContainer = () => {
+  const navigate = useNavigate();
   const urlId = useParams().id as string;
-  return <Clues id={urlId} />;
+  return <Clues id={urlId} navigate={navigate} />;
 };
 
 export default CluesContainer;

@@ -49,6 +49,10 @@ ol, ul {
   margin-left: 20px;
 }
 
+.container-fluid.card-container {
+  padding: 0;
+}
+
 .clover-card {
   border: 2px #808080 solid;
   border-radius: 4px;
@@ -109,56 +113,89 @@ ol, ul {
   color: #B80000;
 }
 
+.column-clues .row {
+  width: 100%;
+  margin: 0;
+}
+
+.clover-card .card-internal-row {
+  /*account for negative margin*/
+  width: calc(100%);
+  margin: 0;
+}
+
+.clover-card .card-internal-col {
+  padding: 0;
+}
+
 .clover-card .word {
   margin-left: 0;
   margin-top: 0;
-  width: 50%;
   padding: 4px;
   word-wrap: break-word;
+}
+
+.clover-card.clue-card .word {
+  width: calc(50% - 4px);
 }
 
 .clover-card .shown-word {
   transition-property: left, right, top, bottom, transform;
   transition-timing-function: ease-out;
-  transition-duration: inherit;
+  /*transition-duration: inherit;*/
+  transition-duration: 0.3s;
   transform: translateX(0) translateY(0);
   position: absolute;
   left: 0;
   right: 100%;
   top: 0;
   bottom: 100%;
+  /*visibility: hidden;*/
+  /*opacity: 50%;*/
+  width: calc(50% - 4px);
+  /*width: calc(50% - 4px - 15px);*/
+  height: calc(50% - 4px);
+  z-index: -1;
 }
 
 .clover-card .word.hidden-word {
   visibility: hidden;
+  z-index: -1;
 }
 
-.clover-card .word.left-word {
+.clover-card .word.bold-word {
   font-weight: bolder;
+}
+
+.clover-card .word.right-word {
+  text-align:right;
+}
+
+.clover-card .word.left-word.shown-word {
   left: 0;
   right: 100%;
 }
 
-.clover-card .word.top-word {
+.clover-card .word.top-word.shown-word {
   top: 0;
   bottom: 100%;
 }
 
-.clover-card .word.bottom-word {
+.clover-card .word.bottom-word.shown-word {
   top: 100%;
   bottom: 0;
   transform: translateX(0) translateY(calc(-2em - 4px));
   vertical-align: text-bottom;
 }
 
-.clover-card .word.right-word {
+.clover-card .word.right-word.shown-word {
   left: 100%;
   right: 0;
   transform: translateX(-100%) translateY(0);
   text-align:right;
 }
 
-.clover-card .word.right-word.bottom-word {
+.clover-card .word.right-word.bottom-word.shown-word {
   transform: translateX(-100%) translateY(calc(-2em - 4px));
 }
 

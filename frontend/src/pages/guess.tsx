@@ -2,7 +2,7 @@ import React from 'react';
 import { useEffect } from 'react';
 import CloverService from '../api';
 import { GameType, AnswerType, CardType, GuessResponseType, BoardClientState } from '../api';
-import * as $ from 'jquery';
+// import * as $ from 'jquery';
 
 import { Container, Row, Col, Button, ListGroup } from 'react-bootstrap';
 
@@ -128,6 +128,13 @@ export class Guess extends React.Component<GuessProps, GuessState> {
   }
 
   async submitGuess() {
+    // If the last guess was successful, disable the button
+    if ((this.state.previousGuesses.at(-1) || null)?.[1]?.every((answer) => {
+      return answer === 1;
+    })) {
+      return;
+    }
+
     const guess = JSON.parse(JSON.stringify(this.state.guess.cardPositions.slice(0, 4)));
     const response = await CloverService.makeGuess(
       this.props.id,
@@ -221,12 +228,12 @@ export class Guess extends React.Component<GuessProps, GuessState> {
     // https://stackoverflow.com/questions/4467539/javascript-modulo-gives-a-negative-result-for-negative-numbers
     const newRotation = (((this.state.guess.cardPositions[i][1] + n) % 4) + 4) % 4;
     newCardPositions[i][1] = newRotation;
-    const cardDom = $(`.clover-card#${i.toString()}`).get(0);
-    console.log(cardDom);
-    cardDom.style['transition-duration'] = '0.3s';
-    setTimeout(() => {
-      cardDom.style['transition-duration'] = '0s';
-    }, 300);
+    // $.makeArray($(`.clover-card.card-${i.toString()}`)).map((card: any) => {
+    //   card.style['transition-duration'] = '0.3s';
+    //   setTimeout(() => {
+    //     card.style['transition-duration'] = '0s';
+    //   }, 300);
+    // });
     this.setStateWithWrite({
       guess: {
         ...this.state.guess,
@@ -303,7 +310,7 @@ export class Guess extends React.Component<GuessProps, GuessState> {
   }
 
   async copyToClipboard() {
-    const text = `${this.state.game?.suggested_num_cards} card clover game\n${this.historyText().map((l) => l.join('')).join('\n')}\nPlay this puzzle at http://clover.marktai.com/games/${this.props.id}/guess`;
+    const text = `${this.state.game?.suggested_num_cards} card clover game by ${this.state.game?.author}\n${this.historyText().map((l) => l.join('')).join('\n')}\nPlay this puzzle at http://clover.marktai.com/games/${this.props.id}/guess`;
     this.setStateWithWrite({copiedToClipboard: true});
 
     if ('clipboard' in navigator) {
@@ -326,19 +333,23 @@ export class Guess extends React.Component<GuessProps, GuessState> {
     }
   }
 
-  renderCard(i: number, duplicated: boolean = false) {
+  renderCard(i: number, duplicated: boolean = false, buttonsInside: boolean = false, additionalRotation: number = 0) {
     if (this.state.guess.cardPositions.length - 1 < i) {
       return null;
     }
 
     const cardPosition = this.state.guess.cardPositions[i];
     const originalCard = this.state.game?.suggested_possible_cards?.[cardPosition[0]] as CardType;
+    const cardRotationsBeforeAdditional = rotateArray(
+      [0, 1, 2, 3],
+      -1 * (cardPosition[1]),
+    );
     const cardRotations = rotateArray(
       [0, 1, 2, 3],
-      -1 * cardPosition[1],
+      -1 * (cardPosition[1] + additionalRotation),
     );
 
-    const card = this.getCard(i);
+    const card = rotateArray(this.getCard(i) as Array<string>, additionalRotation);
 
     const positionKnowledge = this.positionKnowledge();
 
@@ -376,7 +387,7 @@ export class Guess extends React.Component<GuessProps, GuessState> {
     }
 
 
-    let cardClasses = ['clover-card'];
+    let cardClasses = ['clover-card', `card-${i}`,];
 
     let wordClasses = Array(4).fill(['word', 'shown-word']);
     for (let i = 0; i < 4; i++) {
@@ -391,6 +402,9 @@ export class Guess extends React.Component<GuessProps, GuessState> {
       }
       else if (cardRotations[i] === 3){
         wordClasses[i] = wordClasses[i].concat(['right-word', 'top-word']);
+      }
+      if (cardRotationsBeforeAdditional[i] === 0 || cardRotationsBeforeAdditional[i] === 1) {
+        wordClasses[i] = wordClasses[i].concat(['bold-word']);
       }
     }
 
@@ -412,33 +426,39 @@ export class Guess extends React.Component<GuessProps, GuessState> {
       cardClasses.push('duplicated');
     }
 
+    const buttonCol = <Col className="button-column" xs={2} xl={3}>
+      <div>
+        <Button size='sm' onClick={(e) => {this.rotateCard(i, 1, e)}}>↻</Button>
+      </div>
+      <div className="d-none d-xl-block d-xxl-block" >
+        <Button size='sm' onClick={(e) => {this.rotateCard(i, -1, e)}}>↺</Button>
+      </div>
+    </Col>
+
+
     return (
-      <Container>
+      <Container className="card-container" fluid>
         <Row>
-          <Col xs={10} xl={9}>
-            <div className={cardClasses.join(' ')} onClick={(e) => this.handleCardClick(i, e)} id={i.toString()}>
-
-
-              <div className="word left-word top-word hidden-word">{card?.[0]}</div>
-              <div className="word right-word top-word hidden-word">{card?.[3]}</div>
-              <div className="word left-word bottom-word hidden-word">{card?.[1]}</div>
-              <div className="word right-word bottom-word hidden-word">{card?.[2]}</div>
-
+          <Col xs={buttonsInside ? 12 : 10} xl={buttonsInside ? 12 : 9}>
+            <div className={cardClasses.join(' ')} onClick={(e) => this.handleCardClick(i, e)}>
+              <Row className="card-internal-row">
+                <Col className="card-internal-col" xs={buttonsInside ? 5 : 6} xl={buttonsInside ? 4 : 6}>
+                  <div className="word left-word top-word hidden-word">{card?.[0]}</div>
+                  <div className="word left-word bottom-word hidden-word">{card?.[1]}</div>
+                </Col>
+                { buttonsInside ? buttonCol :null }
+                <Col className="card-internal-col" xs={buttonsInside ? 5 : 6} xl={buttonsInside ? 4 : 6}>
+                  <div className="word right-word top-word hidden-word">{card?.[3]}</div>
+                  <div className="word right-word bottom-word hidden-word">{card?.[2]}</div>
+                </Col>
+              </Row>
               <div className={wordClasses[0].join(' ')}>{originalCard[0]}</div>
               <div className={wordClasses[1].join(' ')}>{originalCard[1]}</div>
               <div className={wordClasses[2].join(' ')}>{originalCard[2]}</div>
               <div className={wordClasses[3].join(' ')}>{originalCard[3]}</div>
             </div>
           </Col>
-
-          <Col className="button-column" xs={2} xl={3}>
-            <div>
-              <Button size='sm' onClick={(e) => {this.rotateCard(i, 1, e)}}>↻</Button>
-            </div>
-            <div className="d-none d-xl-block d-xxl-block" >
-              <Button size='sm' onClick={(e) => {this.rotateCard(i, -1, e)}}>↺</Button>
-            </div>
-          </Col>
+          { !buttonsInside ? buttonCol : null }
         </Row>
       </Container>
     );
@@ -446,8 +466,8 @@ export class Guess extends React.Component<GuessProps, GuessState> {
 
   renderLeftoverCards() {
     return this.state.guess.cardPositions.slice(4).map((_, i) => {
-      return (<Col xs={9} md={5} key={i+4}>
-        { this.renderCard(i + 4) }
+      return (<Col xs={12}>
+        { this.renderCard(i + 4, false, false) }
       </Col>);
     })
   }
@@ -476,48 +496,98 @@ export class Guess extends React.Component<GuessProps, GuessState> {
     }
   }
 
+  renderColumnCluesCards() {
+    // return <div className="d-block d-xl-none d-xxl-none">
+    return <div>
+      <Row>
+        <Col xs={12} lg={7}>
+          <Row>
+            <Col xs={3}/>
+            <Col xs={9}>{this.renderCard(0, false, false)}</Col>
+          </Row>
+          <Row>
+            <Col className="clue" xs={3}>
+              <div>{this.state.game?.clues?.[0]}</div>
+            </Col>
+            <Col xs={9}>{this.renderCard(1, false, false)}</Col>
+          </Row>
+          <Row>
+            <Col className="clue" xs={3}>
+              <div>{this.state.game?.clues?.[1]}</div>
+            </Col>
+            <Col xs={9}>{this.renderCard(2, false, false)}</Col>
+          </Row>
+          <Row>
+            <Col className="clue" xs={3}>
+              <div>{this.state.game?.clues?.[2]}</div>
+            </Col>
+            <Col xs={9}>{this.renderCard(3, false, false)}</Col>
+          </Row>
+          <Row>
+            <Col className="clue" xs={3}>
+              <div>{this.state.game?.clues?.[3]}</div>
+            </Col>
+            <Col xs={9}>{this.renderCard(0, false, false)}</Col>
+          </Row>
+        </Col>
+        <Col xs={12} lg={5}>
+          <Row>
+            { this.renderLeftoverCards() }
+          </Row>
+        </Col>
+      </Row>
+    </div>
+  }
+
+  renderSquareCluesCards() {
+    return <div className="d-none d-xl-block d-xxl-block">
+      <Row>
+        <Col className="clue" xl={12}>
+          <div>{this.state.game?.clues?.[1]}</div>
+        </Col>
+      </Row>
+      <Row>
+        <Col className="clue" xl={2}>
+          <div>{this.state.game?.clues?.[0]}</div>
+        </Col>
+        <Col xl={5}>{this.renderCard(0, false, true)}</Col>
+        <Col xl={5}>{this.renderCard(1, false, true)}</Col>
+        <Col className="clue" xl={2}>
+          <div>{this.state.game?.clues?.[2]}</div>
+        </Col>
+      </Row>
+      <Row>
+        <Col xl={2}>
+        </Col>
+        <Col xl={5}>{this.renderCard(3, false, true)}</Col>
+        <Col xl={5}>{this.renderCard(2, false, true)}</Col>
+        <Col xl={2}>
+        </Col>
+      </Row>
+      <Row>
+        <Col className="clue" xl={12}>
+          <div>{this.state.game?.clues?.[3]}</div>
+        </Col>
+      </Row>
+      <Row>
+        { this.renderLeftoverCards() }
+      </Row>
+    </div>
+  }
+
   renderGame() {
     return (
-      <Col xs={12} lg={8}>
-        <Row>
-          <Col xs={3}/>
-          <Col xs={9} md={5}>{this.renderCard(0)}</Col>
-        </Row>
-        <Row>
-          <Col className="clue" xs={3}>
-            <div>{this.state.game?.clues?.[0]}</div>
-          </Col>
-          <Col xs={9} md={5}>{this.renderCard(1)}</Col>
-        </Row>
-        <Row>
-          <Col className="clue" xs={3}>
-            <div>{this.state.game?.clues?.[1]}</div>
-          </Col>
-          <Col xs={9} md={5}>{this.renderCard(2)}</Col>
-        </Row>
-        <Row>
-          <Col className="clue" xs={3}>
-            <div>{this.state.game?.clues?.[2]}</div>
-          </Col>
-          <Col xs={9} md={5}>{this.renderCard(3)}</Col>
-        </Row>
-        <Row>
-          <Col className="clue" xs={3}>
-            <div>{this.state.game?.clues?.[3]}</div>
-          </Col>
-          <Col xs={9} md={5}>{this.renderCard(0, true)}</Col>
-        </Row>
+      <Col xs={12} lg={9}>
+        { this.renderColumnCluesCards() }
+        {/*{ this.renderSquareCluesCards() }*/}
         <Row>
           <Col>
             { this.renderSubmitButton() }
           </Col>
         </Row>
-        <Row>
-          { this.renderLeftoverCards() }
-        </Row>
 
         <Row>
-          { this.state.game?.suggested_num_cards } card clover game
+          { this.state.game?.suggested_num_cards } card clover game by { this.state.game?.author }
           { this.renderHistory() }
           { this.renderShareButton() }
         </Row>
@@ -532,7 +602,7 @@ export class Guess extends React.Component<GuessProps, GuessState> {
           <Container>
             <Row>
               { this.renderGame() }
-              <Col xs={12} lg={4}>
+              <Col xs={12} lg={3}>
                 <h2>Tutorial</h2>
                 Rearrange the cards and figure out what {this.state.game?.author} had as their original card positions!
                 <ListGroup as="ol" numbered>

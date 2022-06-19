@@ -107,7 +107,12 @@ class List extends React.Component<ListProps, ListState> {
             </ListGroup>
             <div>
               If you are having any issues with loading only some puzzles or some puzzles have the wrong information, click this button.
-              <Button variant={"danger"} onClick={() => {this.clearAllState()}}>Clear all local state!</Button>
+              <div>
+                <Button variant={"danger"} onClick={() => {this.clearAllState()}}>Clear all local state!</Button>
+              </div>
+            </div>
+            <div>
+            If you have any questions or feedback, feel free to email me at mark@marktai.com!
             </div>
           </Col>
         </Row>
