@@ -33,12 +33,16 @@ class BoardViewSet(viewsets.ModelViewSet):
     queryset = Board.objects.all()
 
     def list(self, request):
-        q = self.queryset.filter(clues__isnull=False).order_by('-last_updated_time')
+        query = {
+            'clues__isnull': False,
+            'adult': isinstance(self.request.query_params.get('adult'), str) and self.request.query_params.get('adult').lower() == 'true',
+        }
+        q = self.queryset.filter(**query).order_by('-last_updated_time')
         serializer = self.serializer_class(q, many=True)
         return Response(serializer.data)
 
-    def create(self, request, *args, **kwargs):
-        new_board = Board.objects.create_board()
+    def create(self, request):
+        new_board = Board.objects.create_board(**request.data)
         return Response(BoardSerializer(new_board).data)
 
     def update(self, *args, **kwargs):

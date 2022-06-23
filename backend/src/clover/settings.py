@@ -28,7 +28,7 @@ from .keys import *
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = ['http://*', 'http://localhost', 'http://clover.marktai.com', 'https://clover.marktai.com']
+CSRF_TRUSTED_ORIGINS = ['http://*', 'http://localhost', 'http://localhost:7080', 'http://clover.marktai.com', 'https://clover.marktai.com']
 
 # Application definition
 

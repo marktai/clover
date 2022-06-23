@@ -14,14 +14,23 @@ words_path = os.path.join(dirname, 'words.json')
 with open(words_path) as f:
     words = json.load(f)
 
+adult_words_path = os.path.join(dirname, 'adult_words.json')
+with open(adult_words_path) as f:
+    adult_words = json.load(f)
+
 def chunks(lst, n):
     """Yield successive n-sized chunks from lst."""
     for i in range(0, len(lst), n):
         yield lst[i:i + n]
 
 class BoardManager(models.Manager):
-    def create_board(self, *args, **kwargs):
-        cards = list(chunks(random.sample(words, k=Board.CARDS_GENERATED * Board.WORDS_PER_CARD), Board.WORDS_PER_CARD))
+    def create_board(self, adult=False, *args, **kwargs):
+        if adult:
+            wordlist = adult_words
+        else:
+            wordlist = words
+
+        cards = list(chunks(random.sample(wordlist, k=Board.CARDS_GENERATED * Board.WORDS_PER_CARD), Board.WORDS_PER_CARD))
         answer = tuple((
             (
                 card_index,
@@ -29,7 +38,7 @@ class BoardManager(models.Manager):
             )
             for card_index in random.sample(range(Board.CARDS_GENERATED), k=Board.CARDS_IN_ANSWER)
         ))
-        board = self.create(cards=cards, answer=answer, *args, **kwargs)
+        board = self.create(cards=cards, answer=answer, adult=adult, *args, **kwargs)
 
         return board
 
@@ -41,6 +50,7 @@ class BoardManager(models.Manager):
 
         existing = self.filter(
             daily_set_time__gte=la_day_begin,
+            adult=False,
         ).order_by(
             '-daily_set_time',
         ).first()
@@ -50,6 +60,7 @@ class BoardManager(models.Manager):
 
         new_daily = self.filter(
             ~Q(author=""),
+            adult=False,
         ).filter(
             daily_set_time__isnull=True,
         ).order_by(
@@ -98,6 +109,7 @@ class Board(models.Model):
     suggested_num_cards = models.IntegerField(null=True)
     author = models.CharField(max_length=50, blank=True)
     daily_set_time = models.DateTimeField(null=True)
+    adult = models.BooleanField(default=False, null=False)
 
     @property
     def answer_cards(self):
