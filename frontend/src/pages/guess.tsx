@@ -533,6 +533,7 @@ export class Guess extends React.Component<GuessProps, GuessState> {
         </Col>
         <Col xs={12} lg={5}>
           <Row>
+            <div>Unused cards</div>
             { this.renderLeftoverCards() }
           </Row>
         </Col>

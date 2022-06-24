@@ -6,6 +6,7 @@ from django_jsonform.models.fields import ArrayField
 
 from rest_framework import exceptions as drf_exceptions
 from datetime import datetime, timedelta
+from dateutil import parser
 import pytz
 from django.db.models import Q
 
@@ -41,6 +42,11 @@ class BoardManager(models.Manager):
         board = self.create(cards=cards, answer=answer, adult=adult, *args, **kwargs)
 
         return board
+
+    # imports using the Board.export function
+    def import_board(self, board_dict):
+        board_dict['last_updated_time'] = parser.parse(board_dict['last_updated_time'])
+        self.create(**board_dict)
 
     def daily(self):
         la_tz = pytz.timezone('America/Los_Angeles')
@@ -182,6 +188,18 @@ class Board(models.Model):
             resp.append(cur)
         return resp
 
+    def export(self):
+        board_dict = {
+            'last_updated_time': self.last_updated_time.isoformat(),
+            'clues': self.clues,
+            'cards': self.cards,
+            'answer': self.answer,
+            'suggested_num_cards': self.suggested_num_cards,
+            'author': self.author,
+            'adult': self.adult,
+        }
+
+        return board_dict
 
 class BoardClientStateManager(models.Manager):
     def get_latest(self, board_id):
