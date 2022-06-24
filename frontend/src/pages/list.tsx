@@ -66,7 +66,7 @@ class List extends React.Component<ListProps, ListState> {
           `Game ${game.id} without clues` :
           `Game ${game.id} by ${game.author} with ${game.suggested_num_cards} cards`;
         if (game.daily_set_time !== null) {
-          const date = new Date(game.daily_set_time);
+          const date = new Date(new Date(game.daily_set_time).toLocaleString('en-US', { timeZone: 'America/Los_Angeles' }));
           text += ` (${date.getMonth() + 1}/${date.getDate()}'s daily puzzle)`
         }
         return <ListGroup.Item key={i}>
