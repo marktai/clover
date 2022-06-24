@@ -32,7 +32,8 @@ class List extends React.Component<ListProps, ListState> {
     await this.refresh();
 
     if (this.ws === null) {
-      this.ws = new WebSocket(`wss://${window.location.host}/ws/listen/list`);
+      const ws_protocol = location.protocol === 'http:' ? 'ws:' : 'wss:';
+      this.ws = new WebSocket(`${ws_protocol}//${window.location.host}/ws/listen/list`);
       this.ws.onmessage = async (event) => {
         const message: any = JSON.parse(event.data);
         if (message.type === 'LIST_UPDATE') {

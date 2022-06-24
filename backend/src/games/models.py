@@ -185,7 +185,22 @@ class Board(models.Model):
 
 class BoardClientStateManager(models.Manager):
     def get_latest(self, board_id):
-        return self.filter(board=board_id, created_time__gte=(datetime.now() - timedelta(minutes=2))).order_by('-id').first()
+        latest = self.filter(board=board_id, created_time__gte=(datetime.now() - timedelta(minutes=2))).order_by('-id').first()
+
+        # example
+        # 'previousGuesses': [
+        #    [[[2, 0], [3, 2], [0, 0], [4, 2]], [1, 2, 1, 1]],
+        #    [[[2, 0], [3, 3], [0, 0], [4, 2]], [1, 1, 1, 1]]
+        # ]
+        if latest is not None and 'previousGuesses' in latest.data:
+            done = any([
+                all([card_info == 1 for card_info in response])
+                for guess, response in latest.data['previousGuesses']
+            ])
+            if done:
+                return None
+
+        return latest
 
 class BoardClientState(models.Model):
     objects = BoardClientStateManager()

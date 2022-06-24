@@ -49,6 +49,13 @@ ol, ul {
   margin-left: 20px;
 }
 
+.row > .game-name {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: initial;
+}
+
 .container-fluid.card-container {
   padding: 0;
 }
@@ -72,7 +79,7 @@ ol, ul {
   box-shadow: 0 0 0 0.2rem blue
 }
 
-.clover-card.container.duplicated {
+.clover-card.duplicated {
   color: #707070;
   border-color: #D0D0D0;
 }
@@ -184,19 +191,19 @@ ol, ul {
 .clover-card .word.bottom-word.shown-word {
   top: 100%;
   bottom: 0;
-  transform: translateX(0) translateY(calc(-2em - 4px));
+  transform: translateX(0) translateY(calc(-100% - 4px));
   vertical-align: text-bottom;
 }
 
 .clover-card .word.right-word.shown-word {
   left: 100%;
   right: 0;
-  transform: translateX(-100%) translateY(0);
+  transform: translateX(calc(-100% - 4px)) translateY(0);
   text-align:right;
 }
 
 .clover-card .word.right-word.bottom-word.shown-word {
-  transform: translateX(-100%) translateY(calc(-2em - 4px));
+  transform: translateX(calc(-100% - 4px))  translateY(calc(-100% - 4px));
 }
 
 .button-column {

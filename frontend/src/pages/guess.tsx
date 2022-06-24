@@ -170,7 +170,8 @@ export class Guess extends React.Component<GuessProps, GuessState> {
     }
 
     if (this.ws === null) {
-      this.ws = new WebSocket(`wss://${window.location.host}/ws/listen/${this.props.id}`);
+      const ws_protocol = location.protocol === 'http:' ? 'ws:' : 'wss:';
+      this.ws = new WebSocket(`${ws_protocol}//${window.location.host}/ws/listen/${this.props.id}`);
       this.ws.onmessage = (event) => {
         const message: any = JSON.parse(event.data);
         if (message.type === 'GAME_UPDATE') {
@@ -443,8 +444,8 @@ export class Guess extends React.Component<GuessProps, GuessState> {
             <div className={cardClasses.join(' ')} onClick={(e) => this.handleCardClick(i, e)}>
               <Row className="card-internal-row">
                 <Col className="card-internal-col" xs={buttonsInside ? 5 : 6} xl={buttonsInside ? 4 : 6}>
-                  <div className="word left-word top-word hidden-word">{card?.[0]}</div>
-                  <div className="word left-word bottom-word hidden-word">{card?.[1]}</div>
+                  <div className="word left-word bold-word top-word hidden-word">{card?.[0]}</div>
+                  <div className="word left-word bold-word bottom-word hidden-word">{card?.[1]}</div>
                 </Col>
                 { buttonsInside ? buttonCol :null }
                 <Col className="card-internal-col" xs={buttonsInside ? 5 : 6} xl={buttonsInside ? 4 : 6}>
@@ -527,7 +528,7 @@ export class Guess extends React.Component<GuessProps, GuessState> {
             <Col className="clue" xs={3}>
               <div>{this.state.game?.clues?.[3]}</div>
             </Col>
-            <Col xs={9}>{this.renderCard(0, false, false)}</Col>
+            <Col xs={9}>{this.renderCard(0, true, false)}</Col>
           </Row>
         </Col>
         <Col xs={12} lg={5}>
@@ -601,6 +602,7 @@ export class Guess extends React.Component<GuessProps, GuessState> {
         <div className="game">
           <Container>
             <Row>
+              <div className="game-name">Game { this.state.game.id } by { this.state.game.author }</div>
               { this.renderGame() }
               <Col xs={12} lg={3}>
                 <h2>Tutorial</h2>
