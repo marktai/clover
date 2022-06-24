@@ -25,6 +25,7 @@ export type GameType = {
   author: string,
   daily_set_time: null|string,
   adult: boolean,
+  wordList: string,
 };
 
 export type BoardClientState = {
@@ -96,8 +97,8 @@ export default class CloverService {
     return getJson<GameType>(`${this.host}/games/daily`);
   }
 
-  public static async getGames(adult: boolean): Promise<Array<GameType>> {
-    const gamesResponse = await getJson<Array<GameType>>(`${this.host}/games?adult=${adult}`);
+  public static async getGames(wordList: string, adult: null|boolean): Promise<Array<GameType>> {
+    const gamesResponse = await getJson<Array<GameType>>(`${this.host}/games?word_list_name=${wordList}&adult=${adult}`);
     var sortedGames = gamesResponse.slice();
     sortedGames.sort((a, b) => {
       if (a.last_updated_time === b.last_updated_time) {
@@ -111,8 +112,8 @@ export default class CloverService {
     return sortedGames;
   }
 
-  public static newGame(adult: boolean): Promise<GameType> {
-    return postJson<GameType>(`${this.host}/games`, {adult: adult});
+  public static newGame(wordList: string): Promise<GameType> {
+    return postJson<GameType>(`${this.host}/games`, {word_list_name: wordList});
   }
 
   public static submitClues(id: number|string, clues: Array<string>, suggestedNumCards: number, author: string): Promise<GameType> {

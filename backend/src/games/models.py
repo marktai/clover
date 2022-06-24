@@ -13,11 +13,7 @@ from django.db.models import Q
 dirname, filename = os.path.split(os.path.abspath(__file__))
 words_path = os.path.join(dirname, 'words.json')
 with open(words_path) as f:
-    words = json.load(f)
-
-adult_words_path = os.path.join(dirname, 'adult_words.json')
-with open(adult_words_path) as f:
-    adult_words = json.load(f)
+    default_words = json.load(f)
 
 def chunks(lst, n):
     """Yield successive n-sized chunks from lst."""
@@ -25,21 +21,28 @@ def chunks(lst, n):
         yield lst[i:i + n]
 
 class BoardManager(models.Manager):
-    def create_board(self, adult=False, *args, **kwargs):
-        if adult:
-            wordlist = adult_words
-        else:
-            wordlist = words
+    def create_board(self, word_list_name="default", *args, **kwargs):
 
-        cards = list(chunks(random.sample(wordlist, k=Board.CARDS_GENERATED * Board.WORDS_PER_CARD), Board.WORDS_PER_CARD))
+        if word_list_name != "default":
+            word_list = WordList.objects.filter(name=word_list_name).first()
+            adult = word_list.adult
+            words = word_list.words_array
+        else:
+            word_list = None
+            adult = False
+            words = default_words
+
+        cards_generated = min(Board.CARDS_GENERATED, len(words) // Board.WORDS_PER_CARD)
+
+        cards = list(chunks(random.sample(words, k=cards_generated * Board.WORDS_PER_CARD), Board.WORDS_PER_CARD))
         answer = tuple((
             (
                 card_index,
                 random.randint(0, Board.WORDS_PER_CARD - 1),
             )
-            for card_index in random.sample(range(Board.CARDS_GENERATED), k=Board.CARDS_IN_ANSWER)
+            for card_index in random.sample(range(cards_generated), k=Board.CARDS_IN_ANSWER)
         ))
-        board = self.create(cards=cards, answer=answer, adult=adult, *args, **kwargs)
+        board = self.create(cards=cards, answer=answer, adult=adult, word_list=word_list, *args, **kwargs)
 
         return board
 
@@ -116,6 +119,7 @@ class Board(models.Model):
     author = models.CharField(max_length=50, blank=True)
     daily_set_time = models.DateTimeField(null=True)
     adult = models.BooleanField(default=False, null=False)
+    word_list = models.ForeignKey('WordList', on_delete=models.SET_NULL, null=True)
 
     @property
     def answer_cards(self):
@@ -233,4 +237,18 @@ class BoardGuess(models.Model):
     created_time = models.DateTimeField(auto_now_add=True)
     data = models.JSONField()
     client_id = models.CharField(max_length=50, blank=True)
+
+class WordList(models.Model):
+    name = models.CharField(max_length=40, blank=False, unique=True)
+    words = models.TextField(blank=True)
+    created_time = models.DateTimeField(auto_now_add=True)
+    last_updated_time = models.DateTimeField(auto_now=True)
+    adult = models.BooleanField(default=False)
+
+    @property
+    def words_array(self):
+        return [w for w in self.words.replace('\r', '').split('\n') if w != '']
+
+    def __str__(self):
+        return '%s WordList (id=%d) including %s' % (self.name, self.id, str(self.words_array[0:3]))
 

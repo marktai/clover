@@ -31,3 +31,8 @@ class BoardGuessAdmin(admin.ModelAdmin):
     # def game_link(self, obj):
     #     url = '../../../game/%d/change' % obj.game.id
     #     return mark_safe('<a href="%s">%s</a>' % (url, obj.game))
+
+
+@admin.register(models.WordList)
+class WordListAdmin(admin.ModelAdmin):
+    pass

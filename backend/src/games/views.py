@@ -35,8 +35,17 @@ class BoardViewSet(viewsets.ModelViewSet):
     def list(self, request):
         query = {
             'clues__isnull': False,
-            'adult': isinstance(self.request.query_params.get('adult'), str) and self.request.query_params.get('adult').lower() == 'true',
         }
+
+        if 'adult' in self.request.query_params:
+            query['adult__in'] = [x.lower() == 'true' for x in self.request.query_params.getlist('adult')]
+        else:
+            query['adult'] = False
+
+        if 'word_list_name' in self.request.query_params and tuple(self.request.query_params.getlist('word_list_name')) != ('default',):
+            # TODO(mark): make default word list a real object
+            query['word_list__name__in'] = self.request.query_params.getlist('word_list_name')
+
         q = self.queryset.filter(**query).order_by('-last_updated_time')
         serializer = self.serializer_class(q, many=True)
         return Response(serializer.data)
@@ -46,6 +55,7 @@ class BoardViewSet(viewsets.ModelViewSet):
         return Response(BoardSerializer(new_board).data)
 
     def update(self, *args, **kwargs):
+        # TODO(mark): bounds checking on number of suggested cards
         ret = super().update(*args, **kwargs)
 
         # update on websockets

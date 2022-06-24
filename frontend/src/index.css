@@ -45,6 +45,15 @@ ol, ul {
   flex-direction: row;
 }
 
+.adult {
+  color: maroon;
+}
+
+.list-group > .list-group-item {
+  color: unset;
+  background-color: unset;
+}
+
 .game-info {
   margin-left: 20px;
 }

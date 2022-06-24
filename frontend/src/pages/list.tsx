@@ -5,26 +5,30 @@ import {Container, Row, Col, ListGroup, Button} from 'react-bootstrap';
 import {
   Link,
   useNavigate,
+  useParams,
 } from "react-router-dom";
 
 type ListProps = {
   navigate: any,
-  adult: boolean,
+  wordList: string,
 }
 
 type ListState = {
-  games: null|Array<GameType>;
+  games: null|Array<GameType>,
+  adult: null|boolean,
 };
 
 class List extends React.Component<ListProps, ListState> {
   state: ListState = {
     games: null,
+    adult: this.props.wordList === 'adult',
   };
   ws: null|WebSocket = null;
 
   async refresh() {
-    const games = await CloverService.getGames(this.props.adult);
+    const games = await CloverService.getGames(this.props.wordList, this.props.wordList === 'adult');
     this.setState({
+      ...this.state,
       games: games,
     })
   }
@@ -44,8 +48,18 @@ class List extends React.Component<ListProps, ListState> {
     }
   }
 
+  async componentDidUpdate(prevProps: ListProps) {
+    if (prevProps.wordList !== this.props.wordList) {
+      this.setState({
+        ...this.state,
+        adult: this.props.wordList === 'adult',
+      });
+      await this.refresh();
+    }
+  }
+
   async newGame() {
-    const newGame = await CloverService.newGame(this.props.adult);
+    const newGame = await CloverService.newGame(this.props.wordList);
     this.props.navigate(`/games/${newGame.id}/clues`);
   }
 
@@ -76,10 +90,10 @@ class List extends React.Component<ListProps, ListState> {
     }));
 
     return (
-      <Container className="list">
+      <Container className={"list" + (this.props.wordList !== "default" ? ` ${this.props.wordList}` : "")}>
         <Row>
           <Col xs={12} md={6}>
-            <Button onClick={() => {this.newGame()}}>New {this.props.adult ? "Adult " : ""} Game</Button>
+            <Button onClick={() => {this.newGame()}}>New {this.props.wordList !== "default" ? ` ${this.props.wordList}` : ""} Game</Button>
             <div>
               Games with clues, ready to guess
             </div>
@@ -124,12 +138,13 @@ class List extends React.Component<ListProps, ListState> {
 }
 
 type ListContainerProps = {
-  adult: boolean,
+  wordList?: string,
 }
 
 const ListContainer: React.FunctionComponent<ListContainerProps> = (props) => {
   const navigate = useNavigate();
-  return (<List navigate={navigate} adult={props.adult}></List>)
+  const wordList = props.wordList || useParams().wordList as string || "default";
+  return (<List navigate={navigate} wordList={wordList }></List>)
 }
 
 export default ListContainer;
