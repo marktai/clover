@@ -603,7 +603,7 @@ export class Guess extends React.Component<GuessProps, GuessState> {
         <div className="game">
           <Container>
             <Row>
-              <div className="game-name">Game { this.state.game.id } by { this.state.game.author }</div>
+              <div className="game-name">{ this.state.game.adult ? "Adult game" : "Game" } { this.state.game.id } by { this.state.game.author }</div>
               { this.renderGame() }
               <Col xs={12} lg={3}>
                 <h2>Tutorial</h2>

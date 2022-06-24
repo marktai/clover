@@ -22,7 +22,8 @@ root.render(
     <BrowserRouter>
       <Link to="/">All games</Link>
       <Routes>
-        <Route index element={<List />} />
+        <Route index element={<List adult={false}/>} />
+        <Route path="/adult" element={<List adult={true}/>} />
         <Route path="/games/:id/clues" element={<Clues />} />
         <Route path="/games/:id/guess" element={<Guess />} />
         <Route path="/games/new_daily" element={<Daily />} />

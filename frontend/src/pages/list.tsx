@@ -9,6 +9,7 @@ import {
 
 type ListProps = {
   navigate: any,
+  adult: boolean,
 }
 
 type ListState = {
@@ -22,7 +23,7 @@ class List extends React.Component<ListProps, ListState> {
   ws: null|WebSocket = null;
 
   async refresh() {
-    const games = await CloverService.getGames();
+    const games = await CloverService.getGames(this.props.adult);
     this.setState({
       games: games,
     })
@@ -44,7 +45,7 @@ class List extends React.Component<ListProps, ListState> {
   }
 
   async newGame() {
-    const newGame = await CloverService.newGame();
+    const newGame = await CloverService.newGame(this.props.adult);
     this.props.navigate(`/games/${newGame.id}/clues`);
   }
 
@@ -78,7 +79,7 @@ class List extends React.Component<ListProps, ListState> {
       <Container className="list">
         <Row>
           <Col xs={12} md={6}>
-            <Button onClick={() => {this.newGame()}}>New Game</Button>
+            <Button onClick={() => {this.newGame()}}>New {this.props.adult ? "Adult " : ""} Game</Button>
             <div>
               Games with clues, ready to guess
             </div>
@@ -122,9 +123,13 @@ class List extends React.Component<ListProps, ListState> {
   }
 }
 
-const ListContainer = () => {
+type ListContainerProps = {
+  adult: boolean,
+}
+
+const ListContainer: React.FunctionComponent<ListContainerProps> = (props) => {
   const navigate = useNavigate();
-  return (<List navigate={navigate}></List>)
+  return (<List navigate={navigate} adult={props.adult}></List>)
 }
 
 export default ListContainer;
