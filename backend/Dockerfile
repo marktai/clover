@@ -1,5 +1,14 @@
 FROM python:3.10-rc-alpine
 
+####
+# Install Poetry
+####
+RUN apk add curl
+ENV BASE_POETRY_VERSION=1.1.13
+RUN echo Installing poetry $BASE_POETRY_VERSION \
+      && curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 - --version $BASE_POETRY_VERSION
+ENV PATH /root/.poetry/bin:$PATH
+
 ENV DJANGO_PRODUCTION=false
 ENV PYTHONUNBUFFERED 1
 
@@ -8,13 +17,11 @@ RUN apk add --no-cache libpq postgresql-dev build-base zlib-dev jpeg-dev tiff-de
 RUN mkdir /logs
 RUN mkdir /logs/gunicorn
 
-WORKDIR /app
+ADD . /app/backend
+WORKDIR /app/backend
 
 EXPOSE 80
 
-ADD requirements.txt /app/
-RUN pip3 install -r requirements.txt
+RUN poetry install
 
-ADD . /app/
-
-CMD ["/bin/sh","/app/initialize.sh"]
+CMD ["/bin/sh","/app/backend/initialize.sh"]

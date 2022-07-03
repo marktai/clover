@@ -5,6 +5,10 @@ clean:
 build:
 	docker-compose build
 
+run-dev:
+	-pkill docker-compose
+	docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
 run:
 	-pkill docker-compose
 	docker-compose up

@@ -22,8 +22,7 @@ STATIC_ROOT = os.path.dirname(os.path.abspath(__file__))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
-from .keys import *
-
+SECRET_KEY = os.environ.get("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -42,7 +41,7 @@ INSTALLED_APPS = [
     'django_jsonform',
 
     # clover apps
-    'games',
+    'clover_backend.games',
 ]
 
 MIDDLEWARE = [
@@ -55,7 +54,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'clover.urls'
+ROOT_URLCONF = 'clover_backend.urls'
 
 TEMPLATES = [
     {
@@ -73,7 +72,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'clover.wsgi.application'
+WSGI_APPLICATION = 'clover_backend.wsgi.application'
 
 STATIC_URL = '/static/'
 
@@ -131,7 +130,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.BasicAuthentication',
-        'clover.middleware.CsrfExemptSessionAuthentication',
+        'clover_backend.middleware.CsrfExemptSessionAuthentication',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 100,

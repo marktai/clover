@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.utils.html import mark_safe
-from . import models
+
+from clover_backend.games import models
 
 # Register your models here.
 

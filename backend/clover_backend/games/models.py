@@ -1,14 +1,16 @@
-from django.db import models
-import json, random, string, os
+import json
+import os
+import random
+from datetime import (
+    datetime,
+    timedelta,
+)
 
-from django.db import models, transaction
-from django_jsonform.models.fields import ArrayField
-
-from rest_framework import exceptions as drf_exceptions
-from datetime import datetime, timedelta
-from dateutil import parser
 import pytz
+from dateutil import parser
+from django.db import models
 from django.db.models import Q
+from django_jsonform.models.fields import ArrayField
 
 dirname, filename = os.path.split(os.path.abspath(__file__))
 words_path = os.path.join(dirname, 'words.json')
@@ -251,4 +253,3 @@ class WordList(models.Model):
 
     def __str__(self):
         return '%s WordList (id=%d) including %s' % (self.name, self.id, str(self.words_array[0:3]))
-
