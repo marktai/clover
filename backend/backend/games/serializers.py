@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from clover_backend.games import models
+from backend.games import models
 
 
 class BoardSerializer(serializers.ModelSerializer):

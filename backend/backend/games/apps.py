@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class CloverConfig(AppConfig):
+class GamesConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'clover'
+    name = 'backend.games'

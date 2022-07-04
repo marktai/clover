@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'django_jsonform',
 
     # clover apps
-    'clover_backend.games',
+    'backend.games',
 ]
 
 MIDDLEWARE = [
@@ -54,7 +54,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'clover_backend.urls'
+ROOT_URLCONF = 'backend.urls'
 
 TEMPLATES = [
     {
@@ -72,14 +72,14 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'clover_backend.wsgi.application'
+WSGI_APPLICATION = 'backend.wsgi.application'
 
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (
 )
 
-STATIC_ROOT = '/static/';
+STATIC_ROOT = '/static/'
 
 
 WEBSOCKETS = {
@@ -130,7 +130,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.BasicAuthentication',
-        'clover_backend.middleware.CsrfExemptSessionAuthentication',
+        'backend.middleware.CsrfExemptSessionAuthentication',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 100,

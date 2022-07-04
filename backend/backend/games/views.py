@@ -20,8 +20,8 @@ from django.shortcuts import redirect
 from django.http import Http404
 
 
-from clover_backend.games.serializers import *
-from clover_backend.games.models import *
+from backend.games.serializers import *
+from backend.games.models import *
 
 import requests
 

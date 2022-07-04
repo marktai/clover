@@ -32,7 +32,3 @@ init_db: clean_db
 
 backup_db:
 	docker-compose exec db pg_dumpall -c -U postgres > clover_dump_`date +%d-%m-%Y"_"%H_%M_%S`.sql
-
-install_package:
-	docker-compose exec backend pip3 install $(pkg)
-	docker-compose exec backend pip3 freeze | tail -n +1 > backend/requirements.txt

@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "clover_backend"
+name = "backend"
 version = "0.1.0"
 description = "Django backend for clover"
 authors = ["Your Name <you@example.com>"]
