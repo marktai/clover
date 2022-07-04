@@ -16,7 +16,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path, re_path
 from rest_framework import routers
-from games import views
+
+from backend.games import views
+
 admin.autodiscover()
 from rest_framework.routers import SimpleRouter
 

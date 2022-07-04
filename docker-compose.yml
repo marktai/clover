@@ -17,7 +17,7 @@ services:
     image: clover/backend:latest
     build: ./backend
     volumes:
-      - ./backend/src:/app/src
+      - ./backend:/app/backend
     ports:
       - "7001:80"
     depends_on:

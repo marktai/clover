@@ -20,8 +20,8 @@ from django.shortcuts import redirect
 from django.http import Http404
 
 
-from .serializers import *
-from .models import *
+from backend.games.serializers import *
+from backend.games.models import *
 
 import requests
 
