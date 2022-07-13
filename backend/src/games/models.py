@@ -117,7 +117,7 @@ class Board(models.Model):
 
     suggested_num_cards = models.IntegerField(null=True)
     author = models.CharField(max_length=50, blank=True)
-    daily_set_time = models.DateTimeField(null=True)
+    daily_set_time = models.DateTimeField(null=True, blank=True)
     adult = models.BooleanField(default=False, null=False)
     word_list = models.ForeignKey('WordList', on_delete=models.SET_NULL, null=True)
 

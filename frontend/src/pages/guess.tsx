@@ -38,6 +38,7 @@ type GuessState = {
   previousGuesses: Array<[Array<AnswerType>,GuessResponseType]>,
   copiedToClipboard: boolean,
   guessSubmitted: boolean,
+  disablePull: boolean,
 };
 
 export class Guess extends React.Component<GuessProps, GuessState> {
@@ -50,6 +51,7 @@ export class Guess extends React.Component<GuessProps, GuessState> {
     previousGuesses: [],
     copiedToClipboard: false,
     guessSubmitted: false,
+    disablePull: false,
   };
 
   interval: null|any = null;
@@ -71,11 +73,18 @@ export class Guess extends React.Component<GuessProps, GuessState> {
       previousGuesses: this.state.previousGuesses,
       guessSubmitted: this.state.guessSubmitted,
     }
+    this.setState({
+      ...this.state,
+      disablePull: true,
+    });
+    setTimeout(() => {
+      this.setState({disablePull: false});
+    }, 50);
     return CloverService.updateClientState(this.props.id, data);
   }
 
   async pullClientState(inputClientState: null|BoardClientState = null): Promise<null> {
-    if (!this.props.syncState) {
+    if (!this.props.syncState || this.state.disablePull) {
       return Promise.resolve(null);
     }
 
