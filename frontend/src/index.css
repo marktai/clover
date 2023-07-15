@@ -84,17 +84,22 @@ ol, ul {
   animation-duration: 0.5s;
 }
 
+.clover-card.card-0 {
+  border-style: dashed;
+}
+
 .clover-card.selected {
   box-shadow: 0 0 0 0.2rem blue
 }
-
+/*
 .clover-card.duplicated {
   color: #707070;
   border-color: #D0D0D0;
 }
-
+*/
 .clover-card.correct-card,
-.clover-card.correct-card.duplicated {
+/*.clover-card.correct-card.duplicated*/
+ {
   border: 2px #00FF00 solid;
 }
 
@@ -103,7 +108,8 @@ ol, ul {
 }
 
 .clover-card.correct-position,
-.clover-card.correct-position.duplicated {
+/*.clover-card.correct-position.duplicated */
+{
   border: 2px #f5ed00 solid;
 }
 
@@ -112,7 +118,8 @@ ol, ul {
 }
 
 .clover-card.correct-position-incorrect-rotation,
-.clover-card.correct-position-incorrect-rotation.duplicated {
+/*.clover-card.correct-position-incorrect-rotation.duplicated*/
+ {
   border: 2px #FF9933 solid;
 }
 
@@ -121,7 +128,8 @@ ol, ul {
 }
 
 .clover-card.incorrect-card,
-.clover-card.incorrect-card.duplicated {
+/*.clover-card.incorrect-card.duplicated*/
+ {
   border: 2px #B80000 solid;
 }
 
